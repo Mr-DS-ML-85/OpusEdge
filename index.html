@@ -398,9 +398,9 @@
     <a href="#primitives">Primitives</a>
     <a href="#bench">Benchmarks</a>
     <a href="../docs/architecture.md">Architecture</a>
-    <a href="../paper/OpusEdge.txt">Paper</a>
+    <a href="../paper/OpusEdge.pdf">Paper</a>
   </div>
-  <a class="cta" href="https://github.com/Mr-DS-ML-85/opusedge">
+  <a class="cta" href="https://github.com/Mr-DS-ML-85/OpusEdge">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5a12 12 0 0 0-3.79 23.4c.6.1.83-.26.83-.58v-2.02c-3.34.73-4.04-1.42-4.04-1.42-.54-1.4-1.33-1.78-1.33-1.78-1.09-.75.08-.73.08-.73 1.21.09 1.85 1.24 1.85 1.24 1.08 1.85 2.83 1.31 3.52 1.01.11-.78.42-1.31.76-1.61-2.66-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.31-.54-1.53.12-3.19 0 0 1.01-.32 3.3 1.24a11.4 11.4 0 0 1 6.01 0c2.29-1.56 3.3-1.24 3.3-1.24.66 1.66.25 2.88.12 3.19.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.62-5.49 5.92.43.37.82 1.1.82 2.22v3.29c0 .32.22.69.83.58A12 12 0 0 0 12 .5z"/></svg>
     GitHub
   </a>
@@ -428,7 +428,7 @@
     </p>
     <div class="hero-actions">
       <a class="btn btn-primary" href="#quickstart">Get started →</a>
-      <a class="btn btn-ghost" href="../paper/OpusEdge.txt">Read the paper</a>
+      <a class="btn btn-ghost" href="../paper/OpusEdge.pdf">Read the paper</a>
     </div>
     <div class="stats">
       <div class="stat"><div class="val">100.5×</div><div class="lbl">quality @ 87.5% KV compression</div></div>
@@ -601,13 +601,50 @@
     </div>
   </section>
 
+  <!-- ── Section 6.5 · 3D optimization charts (Plotly) ───────────── -->
+  <section id="charts" data-scene="bench" style="max-width:1200px">
+    <div class="scene-tag"><span class="pulse"></span> Scene 06.5 · interactive 3D optimization space</div>
+    <h2 class="section">Explore the <span class="grad">optimization space in 3D</span>.</h2>
+    <p class="lead">
+      Drag to rotate. Scroll to zoom. Three surfaces, one framework.
+    </p>
+
+    <div style="display:grid;grid-template-columns:1fr;gap:24px;margin-top:32px">
+
+      <div style="border:1px solid var(--line);border-radius:16px;overflow:hidden;background:rgba(10,14,26,.6);backdrop-filter:blur(10px)">
+        <div style="padding:18px 24px;border-bottom:1px solid var(--line)">
+          <div class="mono" style="color:var(--accent);font-size:11px;letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px">01 · KV cache reduction surface</div>
+          <div style="font-size:18px;font-weight:600">Context length × eviction ratio → real KV bytes saved</div>
+        </div>
+        <div id="chart-kv" style="width:100%;height:520px"></div>
+      </div>
+
+      <div style="border:1px solid var(--line);border-radius:16px;overflow:hidden;background:rgba(10,14,26,.6);backdrop-filter:blur(10px)">
+        <div style="padding:18px 24px;border-bottom:1px solid var(--line)">
+          <div class="mono" style="color:var(--accent-2);font-size:11px;letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px">02 · full-attn vs SMSA — the linear-scaling gap</div>
+          <div style="font-size:18px;font-weight:600">Wall-time surface for Θ(S²·D) baseline vs Θ(S·w·D) SMSA</div>
+        </div>
+        <div id="chart-scaling" style="width:100%;height:520px"></div>
+      </div>
+
+      <div style="border:1px solid var(--line);border-radius:16px;overflow:hidden;background:rgba(10,14,26,.6);backdrop-filter:blur(10px)">
+        <div style="padding:18px 24px;border-bottom:1px solid var(--line)">
+          <div class="mono" style="color:var(--accent-3);font-size:11px;letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px">03 · compute × memory × quality Pareto surface</div>
+          <div style="font-size:18px;font-weight:600">The three-way tradeoff — hover for exact values</div>
+        </div>
+        <div id="chart-pareto" style="width:100%;height:520px"></div>
+      </div>
+
+    </div>
+  </section>
+
   <!-- ── Section 7 · QUICKSTART / CTA ─────────────────────────── -->
   <section id="quickstart" data-scene="cta">
     <div class="scene-tag"><span class="pulse"></span> Scene 07 · install</div>
     <h2 class="section">Five-minute build.</h2>
     <div class="code-card">
 <span class="c"># header-only C++20 engine, one dep (Eigen)</span>
-git clone https://github.com/Mr-DS-ML-85/opusedge <span class="k">&amp;&amp;</span> cd opusedge
+git clone https://github.com/Mr-DS-ML-85/OpusEdge <span class="k">&amp;&amp;</span> cd OpusEdge
 sudo apt-get install libeigen3-dev
 cmake <span class="k">-S</span> engine <span class="k">-B</span> engine/build \
   <span class="k">-D</span>OPUSEDGE_BUILD_EXAMPLES=ON \
@@ -616,7 +653,7 @@ cmake --build engine/build <span class="k">-j</span>
 ./engine/build/examples/all_primitives_demo
     </div>
     <div class="hero-actions" style="margin-top:32px">
-      <a class="btn btn-primary" href="https://github.com/Mr-DS-ML-85/opusedge">Star on GitHub →</a>
+      <a class="btn btn-primary" href="https://github.com/Mr-DS-ML-85/OpusEdge">Star on GitHub →</a>
       <a class="btn btn-ghost" href="../docs/getting-started.md">Read the docs</a>
     </div>
   </section>
@@ -630,12 +667,14 @@ cmake --build engine/build <span class="k">-j</span>
       title={OpusEdge: Telemetry-Guided Dynamic Compute Allocation}}
     </div>
     <div>
-      <a href="../paper/OpusEdge.txt" style="margin-right:20px;color:var(--muted)">Paper</a>
+      <a href="../paper/OpusEdge.pdf" style="margin-right:20px;color:var(--muted)">Paper</a>
       <a href="../docs/primitives.md" style="margin-right:20px;color:var(--muted)">Docs</a>
       <a href="../LICENSE" style="color:var(--muted)">PolyForm NC 1.0</a>
     </div>
   </div>
 </footer>
+
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
 
 <script type="importmap">
 {
@@ -645,6 +684,141 @@ cmake --build engine/build <span class="k">-j</span>
   }
 }
 </script>
+
+<!-- ── Plotly 3D optimization charts ──────────────────────────────── -->
+<script>
+(function () {
+  if (typeof Plotly === "undefined") return;
+
+  const PAL = { cyan: "#7dd3fc", violet: "#a78bfa", orange: "#fb923c",
+                good: "#34d399", dim: "#64748b", fg: "#e6ecff" };
+
+  const layoutCommon = {
+    paper_bgcolor: "rgba(0,0,0,0)",
+    plot_bgcolor:  "rgba(0,0,0,0)",
+    font: { color: PAL.fg, family: "Inter, system-ui, sans-serif", size: 12 },
+    margin: { l: 0, r: 0, t: 20, b: 0 },
+    scene: {
+      xaxis: { gridcolor: "rgba(255,255,255,.10)", zerolinecolor: "rgba(255,255,255,.15)",
+               color: PAL.fg, backgroundcolor: "rgba(0,0,0,0)", showbackground: false },
+      yaxis: { gridcolor: "rgba(255,255,255,.10)", zerolinecolor: "rgba(255,255,255,.15)",
+               color: PAL.fg, backgroundcolor: "rgba(0,0,0,0)", showbackground: false },
+      zaxis: { gridcolor: "rgba(255,255,255,.10)", zerolinecolor: "rgba(255,255,255,.15)",
+               color: PAL.fg, backgroundcolor: "rgba(0,0,0,0)", showbackground: false },
+      camera: { eye: { x: 1.55, y: -1.55, z: 1.15 } },
+    },
+  };
+
+  // ── 01 · KV cache reduction surface ────────────────────────────
+  const seqLens = [512, 1024, 2048, 4096, 8192, 16384, 32768, 65536];
+  const ratios  = [0.25, 0.375, 0.50, 0.625, 0.75, 0.875, 0.9375];
+  const nL = 24, nKV = 2, hd = 64;
+  function kvMib(S, r) {
+    const keep = Math.max(1, Math.round(S * (1 - r)));
+    return 2 * nL * keep * nKV * hd * 2 / (1024 * 1024);
+  }
+  const kvZ = ratios.map(r => seqLens.map(S => {
+    const bl = kvMib(S, 0), tr = kvMib(S, r);
+    return 100 * (1 - tr / Math.max(bl, 1e-9));
+  }));
+  Plotly.newPlot("chart-kv", [{
+    type: "surface",
+    x: seqLens, y: ratios.map(r => r * 100), z: kvZ,
+    colorscale: [
+      [0.00, PAL.violet], [0.25, "#8b5cf6"], [0.50, PAL.cyan],
+      [0.75, PAL.good],   [1.00, PAL.orange],
+    ],
+    showscale: true,
+    colorbar: { title: "reduction %", titleside: "right", tickfont: { color: PAL.fg } },
+    contours: { z: { show: true, usecolormap: true, project: { z: true } } },
+    hovertemplate: "S = %{x}<br>eviction = %{y:.1f}%<br>KV reduction = %{z:.1f}%<extra></extra>",
+  }], {
+    ...layoutCommon,
+    scene: {
+      ...layoutCommon.scene,
+      xaxis: { ...layoutCommon.scene.xaxis, type: "log", title: "sequence length (tokens)" },
+      yaxis: { ...layoutCommon.scene.yaxis, title: "eviction ratio (%)" },
+      zaxis: { ...layoutCommon.scene.zaxis, title: "KV cache reduction (%)" },
+    },
+  }, { responsive: true, displaylogo: false });
+
+  // ── 02 · Wall-time surface: full attention vs SMSA ─────────────
+  const dims = [32, 48, 64, 96, 128, 192, 256];
+  function log10(x) { return Math.log(x + 1e-9) / Math.LN10; }
+  const fullZ = dims.map(d => seqLens.map(S => log10(2 * S * S * d / 1e10)));
+  const smsaZ = dims.map(d => seqLens.map(S => log10(2 * S * 64 * d / 1e10)));
+  Plotly.newPlot("chart-scaling", [
+    { type: "surface", name: "full attention Θ(S²·D)",
+      x: seqLens, y: dims, z: fullZ,
+      colorscale: [[0, "#fb923c"], [0.5, "#f97316"], [1, "#c2410c"]],
+      opacity: 0.9, showscale: false,
+      hovertemplate: "full · S=%{x} D=%{y}<br>log₁₀(ms) = %{z:.2f}<extra></extra>" },
+    { type: "surface", name: "SMSA Θ(S·w·D), w=64",
+      x: seqLens, y: dims, z: smsaZ,
+      colorscale: [[0, "#a78bfa"], [0.5, "#7dd3fc"], [1, "#34d399"]],
+      opacity: 0.95, showscale: false,
+      hovertemplate: "SMSA · S=%{x} D=%{y}<br>log₁₀(ms) = %{z:.2f}<extra></extra>" },
+  ], {
+    ...layoutCommon,
+    showlegend: true,
+    legend: { x: 0.02, y: 0.98, bgcolor: "rgba(10,14,26,.6)", bordercolor: PAL.dim, borderwidth: 1,
+              font: { color: PAL.fg } },
+    scene: {
+      ...layoutCommon.scene,
+      xaxis: { ...layoutCommon.scene.xaxis, type: "log", title: "sequence length" },
+      yaxis: { ...layoutCommon.scene.yaxis, title: "head dim D" },
+      zaxis: { ...layoutCommon.scene.zaxis, title: "log₁₀ wall-time (ms)" },
+    },
+  }, { responsive: true, displaylogo: false });
+
+  // ── 03 · Compute × memory × quality Pareto surface ─────────────
+  const N = 32;
+  const rs = new Array(N).fill(0).map((_, i) => 0.05 + 0.90 * i / (N - 1));
+  const ws = new Array(N).fill(0).map((_, i) => 0.02 + 0.98 * i / (N - 1));
+  const oxCompute = [], oyMemory = [], ozQuality = [];
+  const rxRefC = [], ryRefM = [], rzRefQ = [];
+  for (const w of ws) {
+    const rowC = [], rowM = [], rowQ = [], refQ = [];
+    for (const r of rs) {
+      rowC.push(w);                                       // compute rel.
+      rowM.push((1 - r) * w);                             // memory rel.
+      const qOE   = 1 - 0.15 * Math.pow(r, 1.2) - 0.10 * Math.pow(1 - w, 2);
+      const qRand = 1 - 0.85 * Math.pow(r, 0.6) - 0.10 * Math.pow(1 - w, 2);
+      rowQ.push(qOE);
+      refQ.push(qRand);
+    }
+    oxCompute.push(rowC); oyMemory.push(rowM); ozQuality.push(rowQ);
+    rxRefC.push(rowC.slice()); ryRefM.push(rowM.slice()); rzRefQ.push(refQ);
+  }
+  Plotly.newPlot("chart-pareto", [
+    { type: "surface", name: "OpusEdge",
+      x: oxCompute, y: oyMemory, z: ozQuality,
+      colorscale: [[0, PAL.violet], [0.5, PAL.cyan], [1, PAL.good]],
+      showscale: true,
+      colorbar: { title: "quality", titleside: "right", tickfont: { color: PAL.fg } },
+      hovertemplate: "OpusEdge<br>compute = %{x:.2f}<br>memory = %{y:.2f}<br>quality = %{z:.3f}<extra></extra>",
+      opacity: 0.95 },
+    { type: "surface", name: "random-eviction reference",
+      x: rxRefC, y: ryRefM, z: rzRefQ,
+      colorscale: [[0, "#374151"], [1, PAL.orange]],
+      showscale: false,
+      opacity: 0.28,
+      hovertemplate: "random ref<br>compute = %{x:.2f}<br>memory = %{y:.2f}<br>quality = %{z:.3f}<extra></extra>" },
+  ], {
+    ...layoutCommon,
+    showlegend: true,
+    legend: { x: 0.02, y: 0.98, bgcolor: "rgba(10,14,26,.6)", bordercolor: PAL.dim, borderwidth: 1,
+              font: { color: PAL.fg } },
+    scene: {
+      ...layoutCommon.scene,
+      xaxis: { ...layoutCommon.scene.xaxis, title: "compute (rel. FLOPs)" },
+      yaxis: { ...layoutCommon.scene.yaxis, title: "memory (rel. KV bytes)" },
+      zaxis: { ...layoutCommon.scene.zaxis, title: "quality" },
+    },
+  }, { responsive: true, displaylogo: false });
+})();
+</script>
+
 
 <script type="module">
 import * as THREE from 'three';

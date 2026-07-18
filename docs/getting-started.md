@@ -17,7 +17,7 @@ You need a compiler that speaks `c++20` (GCC 12+, Clang 15+, MSVC 19.32+).
 ## 2. Build the engine
 
 ```bash
-git clone https://github.com/Mr-DS-ML-85/opusedge && cd opusedge
+git clone https://github.com/Mr-DS-ML-85/OpusEdge && cd OpusEdge
 
 cmake -S engine -B engine/build \
   -DCMAKE_BUILD_TYPE=Release \

@@ -1,49 +1,81 @@
 <div align="center">
 
-# OpusEdge
+# OpusEdge — Δ
 
-**Telemetry-guided dynamic compute allocation for dense, MoE, and hybrid SSM–attention LLMs.**
+### One signal · thirty primitives · every architecture
 
-[![build](https://github.com/Mr-DS-ML-85/opusedge/actions/workflows/build.yml/badge.svg)](.github/workflows/build.yml)
-[![c++20](https://img.shields.io/badge/c%2B%2B-20-00599C?logo=cplusplus&logoColor=white)](engine/CMakeLists.txt)
-[![python](https://img.shields.io/badge/python-3.12+-3776AB?logo=python&logoColor=white)](bench/pyproject.toml)
-[![license](https://img.shields.io/badge/code-PolyForm_NC_1.0.0-8b5cf6)](LICENSE)
-[![paper-license](https://img.shields.io/badge/paper-CC_BY--NC_4.0-8b5cf6)](paper/LICENSE)
-[![paper](https://img.shields.io/badge/paper-OpusEdge-orange)](paper/OpusEdge.txt)
-[![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen)](CONTRIBUTING.md)
+**Telemetry-guided compute allocation for dense, MoE, and hybrid SSM–attention LLMs.**
+Reference C++20 engine · Python SDK · Three.js docs · reproduced on a single 8 GB GPU.
 
-`OpusEdge` extracts a **single per-token importance signal — Δ —** from any transformer family
-(native selectivity in hybrid SSM-attention, RMS drift proxy in dense, router gating in MoE)
-and uses it to drive **10 core primitives + 4 stabilizers + 2 task controllers** — 30 total
-bindings — that shrink KV cache, sparsify attention, gate heads, compress hidden state, and
-modulate compute **without any retraining**.
+<br />
 
-**100.5× quality retention @ 87.5% KV compression · 4.98× attention speedup · runs on a single RTX 4060.**
+<a href="paper/OpusEdge.pdf"><img alt="Paper — PDF" src="https://img.shields.io/badge/paper-OpusEdge_(pdf)-FB923C?style=for-the-badge&logo=readthedocs&logoColor=white" /></a>
+<a href=".github/workflows/build.yml"><img alt="Build" src="https://img.shields.io/github/actions/workflow/status/Mr-DS-ML-85/OpusEdge/build.yml?branch=main&style=for-the-badge&label=build" /></a>
+<a href="engine/CMakeLists.txt"><img alt="C++20" src="https://img.shields.io/badge/C%2B%2B-20-00599C?style=for-the-badge&logo=cplusplus&logoColor=white" /></a>
+<a href="bench/pyproject.toml"><img alt="Python 3.12+" src="https://img.shields.io/badge/Python-3.12+-3776AB?style=for-the-badge&logo=python&logoColor=white" /></a>
+<a href="LICENSE"><img alt="License — PolyForm NC" src="https://img.shields.io/badge/code-PolyForm_NC_1.0-A78BFA?style=for-the-badge&logo=creativecommons&logoColor=white" /></a>
+<a href="paper/LICENSE"><img alt="Paper — CC BY-NC 4.0" src="https://img.shields.io/badge/paper-CC_BY--NC_4.0-A78BFA?style=for-the-badge&logo=creativecommons&logoColor=white" /></a>
 
-<sub>Reference C++ engine · header-only · Eigen · ~30 primitives · 5-minute build.</sub>
+<br /><br />
+
+<a href="https://github.com/Mr-DS-ML-85/OpusEdge/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/Mr-DS-ML-85/OpusEdge?style=flat&color=fbbf24&label=%E2%98%85%20stars" /></a>
+<img alt="Header-only" src="https://img.shields.io/badge/header--only-Eigen%20only-06b6d4?style=flat" />
+<img alt="Retraining" src="https://img.shields.io/badge/retraining-not%20required-34d399?style=flat" />
+<img alt="Primitives" src="https://img.shields.io/badge/primitives-30%20bindings-a78bfa?style=flat" />
+<img alt="Families" src="https://img.shields.io/badge/families-dense%20%2F%20hybrid%20%2F%20MoE-fb923c?style=flat" />
 
 </div>
 
+<br />
+
+<table align="center">
+<tr>
+  <td align="center" width="20%"><b>93.8&thinsp;%</b><br /><sub>measured KV cache reduction<br />(65K ctx, chunked SelKV)</sub></td>
+  <td align="center" width="20%"><b>65 536</b><br /><sub>tokens streamed<br />on 1.8 GB VRAM (Qwen)</sub></td>
+  <td align="center" width="20%"><b>4.98×</b><br /><sub>attention speedup<br />@ 2K tokens (paper)</sub></td>
+  <td align="center" width="20%"><b>30</b><br /><sub>Python bindings across<br />16 C++ headers</sub></td>
+  <td align="center" width="20%"><b>0×</b><br /><sub>retraining<br />zero fine-tuning</sub></td>
+</tr>
+</table>
+
+<br />
+
 ---
 
-## Why
+## 🎯 What OpusEdge does — in one paragraph
 
-Existing KV-eviction, sparse-attention, and MoE-routing pipelines treat each architecture family
-as a disjoint problem — separate codebases, separate benchmarks. OpusEdge rejects that fragmentation
-with a single observation:
+`OpusEdge` extracts a **single per-token importance signal — Δ —** from any transformer
+family:
 
-> **Every modern architecture already emits a per-token importance signal for free.
-> The SSM selectivity Δ, the hidden-state drift, the router softmax — they all rank tokens
-> by informational novelty, and one framework can consume any of them.**
+- **native SSM selectivity** in hybrid architectures (Falcon-H1, Jamba, Mamba-2),
+- **RMS hidden-state drift** as an O(L) proxy in pure dense transformers (Qwen, LLaMA, SmolLM),
+- **router-softmax entropy** in MoE models (Mixtral, OLMoE, IBM Granite MoE).
 
-Read the [paper](paper/OpusEdge.txt) for the derivation, or jump straight to [`docs/primitives.md`](docs/primitives.md).
+That one signal then drives **10 core primitives + 4 stabilizers + 2 task controllers** —
+30 Python bindings across 16 C++ headers — to shrink the KV cache, sparsify attention,
+gate heads, compress hidden state, and modulate compute. Every primitive is a pure
+function of Δ. Nothing is retrained. No CUDA required at the primitive layer.
+
+> **Every modern architecture already emits a per-token importance signal for free.**
+> The SSM's Δ, the dense hidden-state drift, the router softmax — all three rank tokens
+> by informational novelty. OpusEdge is the framework that consumes any of them.
+
+📄 Full derivation: [`paper/OpusEdge.pdf`](paper/OpusEdge.pdf) — or jump to [`docs/primitives.md`](docs/primitives.md).
+
+<p align="center">
+  <img src="plots/cpp_linear_65k.png" width="72%" alt="OpusEdge · C++ primitives all scale linearly at 8K → 65K" />
+</p>
+
+<sub><i>All OpusEdge C++ primitives (SMSA, Delta-AR, SelKV, HeadGate) sit on top of
+the O(S) reference line from 8K to 65K sequence lengths — the paper's linear-scale
+inference claim, verified empirically.</i></sub>
 
 ## Quick start
 
 **Under a minute from clone to a running demo of all 30 primitives:**
 
 ```bash
-git clone https://github.com/Mr-DS-ML-85/opusedge && cd opusedge
+git clone https://github.com/Mr-DS-ML-85/OpusEdge && cd OpusEdge
 sudo apt-get install libeigen3-dev cmake g++     # macOS: brew install eigen cmake
 make demo                                         # builds the engine, runs all_primitives_demo
 ```
@@ -491,7 +523,7 @@ Bug reports, new model backends, and cleaner derivations of the paper equations 
 Built by [Irfan Mahir](https://github.com/Mr-DS-ML-85) — 18, Bangladesh — under the Infernix
 Inference Engine project at Furylogic Labs. The reference implementation and this repo were
 polished with Claude Code assistance; every numerical decision maps back to a specific paper
-equation, and the primary source of truth is [`paper/OpusEdge.txt`](paper/OpusEdge.txt).
+equation, and the primary source of truth is [`paper/OpusEdge.pdf`](paper/OpusEdge.pdf).
 
 ## License
 

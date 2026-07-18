@@ -43,7 +43,7 @@ setup(
     long_description_content_type="text/markdown",
     author="Irfan Mahir",
     author_email="",
-    url="https://github.com/Mr-DS-ML-85/opusedge",
+    url="https://github.com/Mr-DS-ML-85/OpusEdge",
     license="PolyForm Noncommercial 1.0.0",
     packages=["opusedge_cpp"],
     package_dir={"opusedge_cpp": "opusedge_cpp"},
@@ -68,9 +68,9 @@ setup(
         "Typing :: Typed",
     ],
     project_urls={
-        "Source":  "https://github.com/Mr-DS-ML-85/opusedge",
-        "Paper":   "https://github.com/Mr-DS-ML-85/opusedge/blob/main/paper/OpusEdge.txt",
-        "Issues":  "https://github.com/Mr-DS-ML-85/opusedge/issues",
-        "Docs":    "https://github.com/Mr-DS-ML-85/opusedge/tree/main/docs",
+        "Source":  "https://github.com/Mr-DS-ML-85/OpusEdge",
+        "Paper":   "https://github.com/Mr-DS-ML-85/OpusEdge/blob/main/paper/OpusEdge.pdf",
+        "Issues":  "https://github.com/Mr-DS-ML-85/OpusEdge/issues",
+        "Docs":    "https://github.com/Mr-DS-ML-85/OpusEdge/tree/main/docs",
     },
 )

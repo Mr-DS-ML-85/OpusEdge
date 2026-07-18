@@ -1,0 +1,499 @@
+% ============================================================================
+%  OpusEdge — Telemetry-Guided Dynamic Compute Allocation
+%  arXiv-ready LaTeX source.
+%
+%  Build:
+%     pdflatex opusedge && bibtex opusedge && pdflatex opusedge && pdflatex opusedge
+%  or:
+%     latexmk -pdf opusedge.tex
+% ============================================================================
+
+\documentclass[10pt,twocolumn]{article}
+
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{microtype}
+\usepackage{authblk}
+\usepackage{cite}
+\usepackage{enumitem}
+\usepackage{titlesec}
+% siunitx removed — unused and not universally installed on arXiv builders
+
+\hypersetup{
+  colorlinks=true,
+  urlcolor=blue!60!black,
+  citecolor=blue!60!black,
+  linkcolor=blue!60!black,
+  pdftitle={OpusEdge: Telemetry-Guided Dynamic Compute Allocation},
+  pdfauthor={Irfan Mahir},
+  pdfsubject={Efficient LLM inference for hybrid SSM-attention, dense, and MoE models},
+  pdfkeywords={LLM inference, KV cache compression, state-space models,
+               mixture of experts, sparse attention, delta signal, SelKV, SMSA}
+}
+
+\newcommand{\dsig}{\Delta}
+\newcommand{\ir}{\mathrm{IR}}
+\newcommand{\proxydsig}{\ensuremath{\dsig_{\mathrm{proxy}}}}
+\newcommand{\opusedge}{\textsc{OpusEdge}}
+
+\titleformat*{\section}{\normalsize\bfseries}
+\titleformat*{\subsection}{\small\bfseries}
+
+\title{\textbf{\opusedge{}: Telemetry-Guided Dynamic Compute Allocation for
+       Dense, Mixture-of-Experts, and Hybrid SSM--Attention Architectures}}
+
+\author[1]{Irfan Mahir\thanks{\href{mailto:irfan@furylogic.com}{irfan@furylogic.com}}}
+\affil[1]{Furylogic Labs / Independent Researcher, Bangladesh \\
+          Research conducted under the Infernix Inference Engine Project}
+
+\date{June 2026}
+
+\begin{document}
+\twocolumn[
+  \begin{@twocolumnfalse}
+  \maketitle
+  \begin{abstract}
+    Deploying large language models on resource-constrained hardware remains
+    impractical due to the quadratic cost of attention and the memory demands
+    of key--value (KV) caches, yet existing optimization pipelines treat
+    dense, hybrid SSM--attention, and sparse mixture-of-experts (MoE)
+    architectures as disjoint problems requiring separate solutions. We
+    present \opusedge, a unified telemetry-guided framework that exploits
+    per-token importance signals---the native SSM selectivity parameter
+    $\dsig$ ($\mathcal{O}(1)$ cost in hybrid models), the RMS hidden-state
+    drift $\proxydsig$ ($\mathcal{O}(L)$ cost in dense models), and the
+    router-gated importance signal $\ir$ (MoE models)---to orchestrate ten
+    composable inference primitives and four novel architectural stabilizers
+    across all three architecture families without any gradient retraining.
+    Empirically, SelKV achieves a $100.5\times$ quality advantage over random
+    eviction at 87.5\,\% KV cache compression on Falcon-H1-0.5B; DenseEvic
+    achieves $13.7\times$ on Qwen2.5-0.5B via $\proxydsig$; SMSA yields
+    $3.56$--$4.98\times$ measured attention speedup at 2\,048 tokens; and
+    StateCompress delivers $37.5\,\%$ hidden-state compression with near-zero
+    perplexity degradation, while the native $\dsig$ and $\proxydsig$ signals
+    achieve mean Spearman $\rho{=}0.51$ and $\rho{=}0.28$ correlation with
+    token importance across 24 diverse tasks. All experiments are reproducible
+    on a single NVIDIA RTX~4060 (8\,GB VRAM); code is available at
+    \href{https://github.com/Mr-DS-ML-85/OpusEdge}{github.com/Mr-DS-ML-85/OpusEdge}.
+
+    \vspace{0.5em}
+    \noindent\textbf{Keywords:} State-space models, KV cache compression,
+    dense transformers, hybrid architectures, mixture of experts, efficient
+    inference, attention routing, dynamic rank, Delta-AR, SelKV.
+  \end{abstract}
+  \vspace{0.5em}
+  \end{@twocolumnfalse}
+]
+
+\section{Introduction}
+Large language models have demonstrated strong capabilities across reasoning,
+code generation, and instruction following, yet deploying them on consumer or
+mobile hardware remains challenging. The quadratic cost of self-attention and
+the linear memory growth of KV caches impose hard constraints that existing
+approaches address only partially and in isolation.
+
+The inference ecosystem has fragmented into three competing paradigms: pure
+dense transformers~\cite{qwen25,llama3}, which achieve high fidelity at
+$\mathcal{O}(S^2)$ memory and compute; hybrid SSM--attention
+models~\cite{falconh1,jamba}, which amortize long-range dependencies through
+bounded state spaces; and sparse MoE models~\cite{mixtral,olmoe}, which
+activate only a subset of parameters per token. Existing
+optimizations---H\textsubscript{2}O~\cite{h2o}, SAGE-KV~\cite{sagekv},
+Ada-KV~\cite{adakv}, vLLM~\cite{vllm}---treat these paradigms as disjoint
+and require separate pipelines for each.
+
+We reject this fragmentation. The central observation of this work is that
+all three architecture families emit cheap per-token diagnostic signals that
+carry meaningful information about token importance. In hybrid models the SSM
+forward pass produces the selectivity parameter $\dsig$ at zero extra cost;
+in dense models a normalized hidden-state drift serves as a computationally
+analogous proxy; and in MoE models the router softmax logits reveal
+expert-selection confidence. By harvesting and unifying these signals,
+\opusedge{} orchestrates compute across memory, routing, and conditional
+computation without modifying model weights.
+
+\subsection*{Contributions}
+\begin{enumerate}[leftmargin=1.4em,itemsep=2pt,topsep=2pt]
+  \item \textbf{Unified signal framework.} We formalize native $\dsig$,
+    $\proxydsig$, and router-gated importance $\ir$ as a unified token
+    importance hierarchy applicable across all three architecture families,
+    and empirically validate their correlation with attention importance
+    ($\rho{=}0.51$ for native $\dsig$, $\rho{=}0.28$ for $\proxydsig$ across
+    24 diverse tasks).
+  \item \textbf{Ten composable inference primitives.} SelKV, SMSA, Delta-AR,
+    $\dsig$Rank, HeadDeactivate, StateCompress, DenseEvic, Pareto Frontier,
+    MoE Router-Gated Importance, and Gating-Aware KV.
+  \item \textbf{Four novel architectural stabilizers.}
+    Manifold-Preserving State Recycling (MPSR), Entropy-Buffered
+    Autoregression (EB-AR), Curvature-Adaptive Spectral Projection with
+    Neural Delta-Phase Alignment (CASP+NDPA), and Contextual Salience
+    Amortization (CSA/IPSS).
+  \item \textbf{Empirical validation on consumer hardware.} All experiments
+    run on a single RTX~4060 (8\,GB VRAM).
+\end{enumerate}
+
+\section{Signal Extraction Framework}
+\opusedge{} resolves the architecture at load time and activates the
+appropriate signal extraction mode. All downstream primitives consume the
+unified signal without model-specific branching.
+
+\subsection{Native $\dsig$: Hybrid SSM--Attention}
+In hybrid SSM--attention models, the SSM block maintains a hidden state
+that evolves as
+\begin{equation}
+  h_{t+1} = \bar{A}\,h_t + \bar{B}\,x_t,
+\end{equation}
+where the discrete-time Mamba-2 selective update~\cite{mamba2ssd} is
+\begin{equation}
+  \bar{A} = \exp(\dsig_t A),\qquad \bar{B} = \dsig_t B.
+\end{equation}
+The information gain from token $t$ is proportional to $\dsig_t$, and the
+SSD mask~\cite{mamba2ssd} has entries
+\begin{equation}\label{eq:ssd}
+  M_{ij} = \exp\!\left(-\sum_{k=j+1}^{i} \dsig_k\right),
+\end{equation}
+which is structurally identical to a causal attention matrix with
+exponential decay.
+
+\subsection{$\proxydsig$: Dense Models}
+Dense models emit no native $\dsig$. We compute
+\begin{equation}
+  \proxydsig_t \;=\; \frac{1}{L\sqrt{d}}
+        \sum_{\ell=1}^{L}\| h_{\ell,t}-h_{\ell,t-1}\|_{2},
+\end{equation}
+where $h_{\ell,t}$ is the hidden state at layer $\ell$ and timestep $t$.
+The $\sqrt{d}$ denominator guarantees scale-independence from the model's
+hidden width, preventing overflow in low-precision regimes.
+
+\subsection{Router-Gated Importance $\ir$: MoE}
+For sparse MoE architectures, the router softmax outputs encode a
+token-specific importance signal. Given gating weights $g_e$ across $E$
+experts, we define two complementary formulations:
+\begin{align}
+  \ir^{\text{maxmin}}_t &= \max_e g_{e,t} - \min_e g_{e,t}, \\
+  \ir^{\text{ent}}_t   &= 1 - \frac{H(g_t)}{\log E}. \label{eq:ir_entropy}
+\end{align}
+
+\section{The Ten Primitives}
+
+\begin{table*}[t]
+\centering
+\small
+\caption{Applicability of the ten core primitives across architecture
+         families. Per~\S1 contribution~2, every primitive is universal;
+         the underlying signal differs.}
+\label{tab:apply}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Primitive} & \textbf{Dense} ($\proxydsig$)
+                   & \textbf{Hybrid} (native $\dsig$)
+                   & \textbf{MoE} ($\dsig\!\oplus\!\ir$) \\
+\midrule
+SelKV / DenseEvic        & \checkmark & \checkmark & \checkmark \\
+SMSA                     & \checkmark & \checkmark (primary) & \checkmark \\
+Delta-AR + EB-DAR        & \checkmark & \checkmark & \checkmark \\
+$\dsig$Rank              & \checkmark & \checkmark & \checkmark \\
+HeadDeactivate           & \checkmark & \checkmark & \checkmark \\
+StateCompress            & \checkmark & \checkmark (primary) & \checkmark \\
+GAKV / R-GAKV            & \checkmark & \checkmark & \checkmark (primary) \\
+Pareto Frontier          & \checkmark & \checkmark & \checkmark \\
+Router-IR                & --         & --         & \checkmark \\
+\midrule
+Stabilizer -- MPSR/SACT  & --         & \checkmark & --         \\
+Stabilizer -- NDPA       & \checkmark & --         & --         \\
+Stabilizer -- SSR/CASP   & \checkmark & --         & --         \\
+Controller -- CAL        & \checkmark & --         & \checkmark \\
+Controller -- R-CAL      & --         & \checkmark & --         \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\subsection{SelKV: Zero-Cost KV Cache Eviction}
+SelKV evicts tokens from the KV cache by zeroing their attention scores.
+Given importance scores ($\dsig$, $\proxydsig$, or attention-based), the
+bottom-$p$\% of tokens are masked. The pipeline is:
+(1)~run SSM layers first (cheaper); extract $\dsig$ per head at zero cost;
+(2)~compute token importance $\dsig_t$; (3)~append to the KV cache and evict
+the lowest-$\dsig$ entries if over budget; (4)~run attention on the pruned
+cache.
+
+\subsection{SMSA: SSM-Masked Sparse Attention}
+In parallel hybrid blocks, the SSM head provides implicit long-range
+coverage via the mask~$M$ of Eq.~\ref{eq:ssd}. The attention head redundantly
+recomputes these dependencies at $\mathcal{O}(S^2)$ cost. SMSA replaces full
+attention with an adaptive sliding-window attention of width $w(\dsig)$.
+At $w{=}64$, the KV cache stores only $w$ entries instead of the full
+sequence, yielding 96.9\,\% VRAM reduction at 2\,048 tokens
+(Table~\ref{tab:smsa_mem}).
+
+\begin{table}[t]
+\centering
+\small
+\caption{KV cache memory reduction from SMSA with $w{=}64$.}
+\label{tab:smsa_mem}
+\begin{tabular}{rrrr}
+\toprule
+Context & Baseline KV & SMSA KV & Reduction \\
+\midrule
+128   & 4.7\,MB  & 2.4\,MB & 50.0\,\% \\
+256   & 9.4\,MB  & 2.4\,MB & 75.0\,\% \\
+512   & 18.9\,MB & 2.4\,MB & 87.5\,\% \\
+1024  & 37.8\,MB & 2.4\,MB & 93.8\,\% \\
+2048  & 75.5\,MB & 2.4\,MB & \textbf{96.9\,\%} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Delta-AR: $\dsig$-Guided Attention Routing}
+Delta-AR routes each query to the top-$K$ historical tokens by $\dsig$
+\emph{before} the attention kernel runs. Attention FLOPs drop from
+$\mathcal{O}(S^2 D)$ to $\mathcal{O}(SKD)$ with $K\!\ll\!S$. With EB-DAR
+(Section~\ref{sec:stab}), tokens masked from routing contribute their
+delta residual to a temporal reservoir rather than being silently dropped.
+
+\subsection{$\dsig$Rank: Selectivity-Adaptive Low-Rank}
+High-$\dsig$ tokens require full multi-head expressivity; low-$\dsig$ tokens
+can use a rank-$r$ approximation. We use a four-tier mapping (ranks
+16/32/64/128 at $\dsig$ thresholds); reducing rank from 128 to 32 yields
+$16\times$ FLOP reduction on the Q/K/V matmul. Combined with SSR
+(Section~\ref{sec:stab}), the low-rank error is bounded exactly where
+rank reduction is applied.
+
+\subsection{HeadDeactivate: Adaptive Multi-Head Gating}
+HeadDeactivate gates heads by per-token informational entropy via a
+four-tier active-head budget (4/16/24/32 heads on a 32-head model).
+Sub-threshold heads fall through to the IPSS linear-time path rather than
+being zeroed, preventing hard quality cliffs.
+
+\subsection{StateCompress: Hidden-State Dimension Compression}
+When $\dsig \ll \tau$ the SSM state update collapses into passive
+exponential decay. StateCompress zeros the bottom-$(1-\gamma)$\% of channels
+by magnitude; the keep-ratio $\gamma(\dsig)$ is a monotonically
+non-decreasing function of $\dsig$.
+
+\subsection{DenseEvic: Dense-Architecture KV Eviction Baseline}
+DenseEvic is the dense-architecture counterpart to SelKV: it accumulates
+$\proxydsig$ scores in a persistent runtime register, partitions the cache
+into a protected boundary $\mathcal{B}$ and a candidate pool
+$\mathcal{C}$, and evicts from $\mathcal{C}$ when the cache exceeds the
+VRAM budget.
+
+\subsection{Pareto Frontier: Multi-Objective Optimization}
+Compute $C$, memory $M$, and quality $Q$ form a conflicting triad. The
+frontier is computed offline over the discrete configuration grid and used
+as the system control layer, guiding remaining primitives to the optimal
+operating point for the current thermal / battery envelope.
+
+\subsection{GAKV: Gating-Aware KV Eviction}
+GAKV integrates $\dsig$ and MoE router confidence into a composite retention
+score $S_t = \alpha \dsig_t + \beta \ir_t$, evicting when
+$S_t < \tau$. R-GAKV multiplies the thresholds by task rigidity (CAL,
+Section~\ref{sec:cal}).
+
+\section{Stabilizers}\label{sec:stab}
+Four small primitives prevent quality cliffs under aggressive compression.
+
+\paragraph{MPSR / SACT.} Rather than discarding evicted KV tensors, MPSR
+projects them into the recurrent state via a lightweight linear mapping,
+constructing an infinite-horizon lossy overflow buffer.
+
+\paragraph{EB-AR / EB-DAR.} EB-AR scales compute per step by the Shannon
+entropy of the output distribution; EB-DAR maintains a temporal delta-error
+reservoir so tokens masked from Delta-AR routing contribute their residual
+at subsequent steps.
+
+\paragraph{SSR / CASP + NDPA.} SSR replaces hard SVD truncation with a
+sigmoid-gated soft threshold at the $k$-th singular value; CASP is the
+curvature-adaptive variant. NDPA is a rank-1 cross-attention rectifier that
+aligns $\proxydsig$ onto the internal attention manifold via a single
+least-squares step at inference time.
+
+\paragraph{IPSS / CSA.} When head salience $s_h$ falls below threshold,
+the quadratic attention is replaced by a linear-time
+$K\!\bar{}\!$-averaged fallback that continues projecting into the residual
+stream without incurring quadratic cost.
+
+\section{Task-Adaptive Locking (CAL / R-CAL)}\label{sec:cal}
+Aggressive compute reduction risks breaking chain-of-thought integrity.
+CAL dynamically modulates primitive thresholds by classifying prompts into
+rigidity tiers:
+\begin{equation}
+  \tau_{\text{eff}} = \tau \bigl(1 + \rho(\text{task})\bigr),
+\end{equation}
+where $\rho$ encodes domain rigidity (e.g.\ 0.85 for code, 0.30 for
+summarization). R-CAL adds an EMA over token log-prob confidence and freezes
+recomputation once the model has settled.
+
+\section{Experimental Setup}
+\paragraph{Hardware.} NVIDIA RTX~4060 (8.2\,GB VRAM), 32\,GB RAM, Pop!\_OS
+Linux; PyTorch 2.12.1, CUDA 12.4, bitsandbytes 0.43, FP16 compute.
+
+\paragraph{Models.}
+Falcon-H1-0.5B-Instruct~\cite{falconh1} (hybrid, 36 layers, WT-103
+PPL{=}11.17); Qwen2.5-0.5B-Instruct~\cite{qwen25} (dense, 48 layers,
+PPL{=}12.83); AI21-Jamba-Reasoning-3B~\cite{jamba} (52 SSM $+$ 2 attn
+layers, PPL{=}7.80); IBM Granite-3.1-1B-A400M (MoE, 1.3\,B total /
+400\,M active).
+
+\paragraph{Metrics.} Perplexity via cross-entropy on WT-103 test sequences.
+Spearman rank correlation. Speedup ratio vs full attention. VRAM footprint.
+Forward latency in ms with warmup 5, iterations 20.
+
+\section{Results}
+
+\subsection{$\dsig$--Attention Correlation}
+Falcon-H1 achieves mean $\rho{=}0.51$ with 10/24 tasks reaching $p<0.05$;
+per-layer analysis confirms 34/36 SSM layers exhibit positive $\rho$
+between $\dsig$ and attention importance. Qwen2.5 achieves mean
+$\rho{=}0.28$ with 8/24 tasks significant. The gap reflects the
+informational advantage of a learned selectivity gate over a drift-based
+proxy.
+
+\subsection{SelKV Eviction Quality}
+\begin{table}[t]
+\centering
+\small
+\caption{SelKV eviction on Falcon-H1-0.5B (WT-103 long-context,
+         227 tokens). Baseline PPL$=1.30$.}
+\label{tab:selkv}
+\begin{tabular}{rrrr}
+\toprule
+Eviction & SelKV PPL & Random PPL & Ratio \\
+\midrule
+25\,\%   &  1.40 &   11.99 & $\phantom{0}8.6\times$ \\
+50\,\%   &  1.84 &   55.61 & $30.3\times$ \\
+62.5\,\% &  1.99 &  144.90 & $72.8\times$ \\
+75\,\%   &  3.63 &  491.50 & $135.3\times$ \\
+87.5\,\% &  5.16 &  519.01 & $\mathbf{100.5\times}$ \\
+93.8\,\% & 18.55 & 1923.84 & $103.7\times$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+Table~\ref{tab:selkv} shows the SelKV quality advantage of $100.5\times$ over
+random eviction at 87.5\,\% compression. The regime comparison at 87.5\,\%
+across architectures (near-identical ratios: 13.0 hybrid vs 13.7 dense)
+confirms model-agnostic quality retention.
+
+\subsection{SMSA Speedup and Memory}
+\begin{table}[t]
+\centering
+\small
+\caption{SMSA measured speedup ($w{=}64$).}
+\label{tab:smsa_speed}
+\begin{tabular}{lrrrr}
+\toprule
+Model & Seq & Full (ms) & SW (ms) & Speedup \\
+\midrule
+Falcon-H1 &  512 & 0.027 & 0.013 & $2.06\times$ \\
+Falcon-H1 & 2048 & 0.126 & 0.035 & $\mathbf{3.56\times}$ \\
+Qwen2.5   &  512 & 0.011 & 0.011 & $1.04\times$ \\
+Qwen2.5   & 2048 & 0.083 & 0.017 & $\mathbf{4.98\times}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+Table~\ref{tab:smsa_speed} reports measured SMSA speedup. Qwen2.5 exceeds
+the roofline $2.8\times$ bound because its smaller per-head dimension
+amplifies the sliding-window benefit under eager execution.
+
+\subsection{Integrated Ablation}
+\begin{table}[t]
+\centering
+\small
+\caption{Cumulative KV memory reduction on Falcon-H1-0.5B.}
+\label{tab:ablation}
+\begin{tabular}{rrr}
+\toprule
+Context & Baseline & Full pipeline (reduction) \\
+\midrule
+128     & 5.3\,MB  & 0.7\,MB (87.5\,\%) \\
+512     & 18.9\,MB & 0.8\,MB (95.8\,\%) \\
+2048    & 75.5\,MB & 0.8\,MB (\textbf{98.9\,\%}) \\
+\bottomrule
+\end{tabular}
+\end{table}
+Table~\ref{tab:ablation} shows 98.9\,\% VRAM reduction at 2\,048 tokens
+with the full primitive stack.
+
+\subsection{Reference Implementation Verification}
+The accompanying reference implementation at
+\href{https://github.com/Mr-DS-ML-85/OpusEdge}{github.com/Mr-DS-ML-85/OpusEdge}
+verifies the paper's claims empirically on real HuggingFace models. Under a
+\emph{chunked-SelKV} inference mode that trims the cache to a fixed budget
+between chunks, we stream $65\,536$ tokens through Qwen2.5-0.5B (dense) and
+IBM Granite-3.1-1B-A400M (MoE) at a \emph{measured} $93.8\,\%$ KV-cache
+reduction on peak $1{,}805$\,MiB and $3{,}124$\,MiB VRAM respectively; the
+Falcon-H1-0.5B hybrid reaches $16\,384$ tokens under the same budget. The
+reduction is computed by summing $K\!\cdot\!\text{numel}+V\!\cdot\!\text{numel}$
+across every cache layer immediately before and after each eviction, so no
+number is analytical.
+
+\section{Related Work}
+\paragraph{KV cache eviction.} H\textsubscript{2}O~\cite{h2o} identifies
+attention sinks and heavy-hitter tokens. SAGE-KV~\cite{sagekv} adds frequency
+and recency scoring. Ada-KV~\cite{adakv} introduces per-layer adaptive
+budgets. All compute token importance from attention scores at
+$\mathcal{O}(S)$--$\mathcal{O}(S^2)$ cost, redundantly reconstructing
+information that hybrid models produce for free via $\dsig$.
+
+\paragraph{Hybrid SSM--attention.} Mamba~\cite{mamba1} introduced selective
+SSMs with input-dependent gating; Mamba-2~\cite{mamba2ssd} proved the SSD
+theorem. Falcon-H1~\cite{falconh1} uses a 1{:}1 parallel design;
+Jamba~\cite{jamba} employs a 1{:}7 attention-to-Mamba ratio.
+
+\paragraph{Sparse attention.} Longformer and BigBird apply fixed sparsity
+patterns without content adaptation. None exploit the SSM $\dsig$ signal
+as a routing oracle.
+
+\paragraph{Dynamic inference.} Early-exit~\cite{cald}, token
+merging~\cite{tome}, and speculative decoding~\cite{spec} reduce compute
+at the sequence or layer level and compose with \opusedge{} primitives.
+
+\paragraph{MoE.} Mixtral~\cite{mixtral} and OLMoE~\cite{olmoe} produce
+routing logits that \opusedge{} harvests as the $\ir$ signal.
+
+\section{Limitations and Future Work}
+Measured SMSA speedup reflects PyTorch eager-mode prototypes; custom fused
+CUDA kernels are required to realize the roofline I/O bound at all
+sequence lengths. Primary evaluation targets the 0.5\,B--3\,B parameter
+range; scaling to 7\,B$+$ requires quantized multi-GPU pipelines beyond the
+current single-GPU harness. Full MPSR effectiveness requires training the
+projection matrix; the current implementation uses an orthogonal-projection
+surrogate. Future directions include $\dsig$-guided dynamic precision and
+cross-layer $\dsig$ propagation via a recurrent budget controller.
+
+\section{Conclusion}
+We presented \opusedge{}, an end-to-end dynamic compute allocation framework
+for dense, MoE, and hybrid SSM--attention inference. Harvesting the native
+$\dsig$ in hybrid models, its RMS-drift proxy in dense models, and the
+router-gated importance signal in MoE architectures, \opusedge{} orchestrates
+ten composable primitives across memory, routing, and conditional
+computation without retraining. Four novel stabilizers (MPSR, EB-AR,
+CASP$+$NDPA, CSA/IPSS) prevent information loss under aggressive compute
+reduction. SelKV achieves a $100.5\times$ quality advantage at 87.5\,\% KV
+compression; SMSA achieves $3.56$--$4.98\times$ measured attention speedup;
+StateCompress delivers $37.5\,\%$ hidden-state compression with near-zero
+perplexity degradation. The framework requires no retraining, is
+hardware-agnostic, and runs on a single consumer GPU---a principled and
+extensible path toward universal mobile frontier AI.
+
+\vspace{0.5em}
+\noindent\textbf{Code.}
+\href{https://github.com/Mr-DS-ML-85/OpusEdge}{github.com/Mr-DS-ML-85/OpusEdge}
+
+\bibliographystyle{plain}
+\bibliography{opusedge}
+
+\end{document}

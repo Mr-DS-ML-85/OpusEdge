@@ -1,0 +1,100 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\citation{qwen25,llama3}
+\citation{falconh1,jamba}
+\citation{mixtral,olmoe}
+\citation{h2o}
+\citation{sagekv}
+\citation{adakv}
+\citation{vllm}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}\protected@file@percent }
+\citation{mamba2ssd}
+\citation{mamba2ssd}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Signal Extraction Framework}{2}{section.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Native $\Delta $: Hybrid SSM--Attention}{2}{subsection.2.1}\protected@file@percent }
+\newlabel{eq:ssd}{{3}{2}{Native $\dsig $: Hybrid SSM--Attention}{equation.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}$\ensuremath  {\Delta _{\mathrm  {proxy}}}$: Dense Models}{2}{subsection.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Router-Gated Importance $\mathrm  {IR}$: MoE}{2}{subsection.2.3}\protected@file@percent }
+\newlabel{eq:ir_entropy}{{6}{2}{Router-Gated Importance $\ir $: MoE}{equation.6}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3}The Ten Primitives}{2}{section.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}SelKV: Zero-Cost KV Cache Eviction}{2}{subsection.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}SMSA: SSM-Masked Sparse Attention}{2}{subsection.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Delta-AR: $\Delta $-Guided Attention Routing}{2}{subsection.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}$\Delta $Rank: Selectivity-Adaptive Low-Rank}{2}{subsection.3.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.5}HeadDeactivate: Adaptive Multi-Head Gating}{2}{subsection.3.5}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Applicability of the ten core primitives across architecture families. Per~\S  1 contribution~2, every primitive is universal; the underlying signal differs.}}{3}{table.caption.1}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{tab:apply}{{1}{3}{Applicability of the ten core primitives across architecture families. Per~\S 1 contribution~2, every primitive is universal; the underlying signal differs}{table.caption.1}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces KV cache memory reduction from SMSA with $w{=}64$.}}{3}{table.caption.2}\protected@file@percent }
+\newlabel{tab:smsa_mem}{{2}{3}{KV cache memory reduction from SMSA with $w{=}64$}{table.caption.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.6}StateCompress: Hidden-State Dimension Compression}{3}{subsection.3.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.7}DenseEvic: Dense-Architecture KV Eviction Baseline}{3}{subsection.3.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.8}Pareto Frontier: Multi-Objective Optimization}{3}{subsection.3.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.9}GAKV: Gating-Aware KV Eviction}{3}{subsection.3.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4}Stabilizers}{3}{section.4}\protected@file@percent }
+\newlabel{sec:stab}{{4}{3}{Stabilizers}{section.4}{}}
+\@writefile{toc}{\contentsline {paragraph}{MPSR / SACT.}{3}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{EB-AR / EB-DAR.}{3}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{SSR / CASP + NDPA.}{3}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{IPSS / CSA.}{3}{section.4}\protected@file@percent }
+\citation{falconh1}
+\citation{qwen25}
+\citation{jamba}
+\citation{h2o}
+\citation{sagekv}
+\citation{adakv}
+\citation{mamba1}
+\citation{mamba2ssd}
+\citation{falconh1}
+\citation{jamba}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Task-Adaptive Locking (CAL / R-CAL)}{4}{section.5}\protected@file@percent }
+\newlabel{sec:cal}{{5}{4}{Task-Adaptive Locking (CAL / R-CAL)}{section.5}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Experimental Setup}{4}{section.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Hardware.}{4}{section.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Models.}{4}{section.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Metrics.}{4}{section.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7}Results}{4}{section.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.1}$\Delta $--Attention Correlation}{4}{subsection.7.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.2}SelKV Eviction Quality}{4}{subsection.7.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces SelKV eviction on Falcon-H1-0.5B (WT-103 long-context, 227 tokens). Baseline PPL$=1.30$.}}{4}{table.caption.3}\protected@file@percent }
+\newlabel{tab:selkv}{{3}{4}{SelKV eviction on Falcon-H1-0.5B (WT-103 long-context, 227 tokens). Baseline PPL$=1.30$}{table.caption.3}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces SMSA measured speedup ($w{=}64$).}}{4}{table.caption.4}\protected@file@percent }
+\newlabel{tab:smsa_speed}{{4}{4}{SMSA measured speedup ($w{=}64$)}{table.caption.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.3}SMSA Speedup and Memory}{4}{subsection.7.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.4}Integrated Ablation}{4}{subsection.7.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.5}Reference Implementation Verification}{4}{subsection.7.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {8}Related Work}{4}{section.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{KV cache eviction.}{4}{section.8}\protected@file@percent }
+\citation{cald}
+\citation{tome}
+\citation{spec}
+\citation{mixtral}
+\citation{olmoe}
+\bibstyle{plain}
+\bibdata{opusedge}
+\bibcite{tome}{1}
+\bibcite{sagekv}{2}
+\bibcite{mamba2ssd}{3}
+\bibcite{falconh1}{4}
+\bibcite{mamba1}{5}
+\bibcite{mixtral}{6}
+\bibcite{vllm}{7}
+\bibcite{spec}{8}
+\bibcite{jamba}{9}
+\bibcite{llama3}{10}
+\bibcite{olmoe}{11}
+\bibcite{qwen25}{12}
+\bibcite{cald}{13}
+\bibcite{adakv}{14}
+\bibcite{h2o}{15}
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Cumulative KV memory reduction on Falcon-H1-0.5B.}}{5}{table.caption.5}\protected@file@percent }
+\newlabel{tab:ablation}{{5}{5}{Cumulative KV memory reduction on Falcon-H1-0.5B}{table.caption.5}{}}
+\@writefile{toc}{\contentsline {paragraph}{Hybrid SSM--attention.}{5}{section.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Sparse attention.}{5}{section.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Dynamic inference.}{5}{section.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{MoE.}{5}{section.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {9}Limitations and Future Work}{5}{section.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {10}Conclusion}{5}{section.10}\protected@file@percent }
+\gdef \@abspage@last{6}

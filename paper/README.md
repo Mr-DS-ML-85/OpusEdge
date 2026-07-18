@@ -67,7 +67,7 @@ pip install opusedge
 
 ```bash
 git clone https://github.com/your-org/opusedge
-cd opusedge/python
+cd OpusEdge/python
 pip install -e .
 ```
 

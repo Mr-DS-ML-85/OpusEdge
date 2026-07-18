@@ -198,8 +198,8 @@
   </div>
   <div class="links">
     <a href="../web/index.html">Landing</a>
-    <a href="../paper/OpusEdge.txt">Paper</a>
-    <a href="https://github.com/Mr-DS-ML-85/opusedge">GitHub</a>
+    <a href="../paper/OpusEdge.pdf">Paper</a>
+    <a href="https://github.com/Mr-DS-ML-85/OpusEdge">GitHub</a>
   </div>
 </nav>
 
@@ -253,7 +253,7 @@
   </div>
 
   <h2>Quick install</h2>
-<pre><code>git clone https://github.com/Mr-DS-ML-85/opusedge &amp;&amp; cd opusedge
+<pre><code>git clone https://github.com/Mr-DS-ML-85/OpusEdge &amp;&amp; cd OpusEdge
 sudo apt-get install libeigen3-dev
 cmake -S engine -B engine/build \
   -DOPUSEDGE_BUILD_EXAMPLES=ON \
@@ -270,7 +270,7 @@ cmake --build engine/build -j
          StateCompress channel shrink.</p>
       <div class="go">Launch →</div>
     </a>
-    <a class="card" href="../paper/OpusEdge.txt">
+    <a class="card" href="../paper/OpusEdge.pdf">
       <div class="tag">reading</div>
       <h3>The paper</h3>
       <p>Full derivation of the Δ / Proxy-Δ / IR unification and all 24-prompt benchmarks.</p>
@@ -283,7 +283,115 @@ cmake --build engine/build -j
       <div class="go">Browse →</div>
     </a>
   </div>
+
+  <h2>Interactive 3D optimization space</h2>
+  <p style="color:var(--muted);margin-bottom:24px">
+    Drag to rotate · scroll to zoom · hover for exact values.
+  </p>
+
+  <div style="display:grid;gap:22px">
+    <div style="border:1px solid var(--line);border-radius:16px;overflow:hidden;background:rgba(10,14,26,.55)">
+      <div style="padding:16px 22px;border-bottom:1px solid var(--line);font-weight:600">
+        KV cache reduction — context × eviction ratio
+      </div>
+      <div id="chart-kv" style="width:100%;height:480px"></div>
+    </div>
+    <div style="border:1px solid var(--line);border-radius:16px;overflow:hidden;background:rgba(10,14,26,.55)">
+      <div style="padding:16px 22px;border-bottom:1px solid var(--line);font-weight:600">
+        Full attention Θ(S²·D) vs SMSA Θ(S·w·D)
+      </div>
+      <div id="chart-scaling" style="width:100%;height:480px"></div>
+    </div>
+    <div style="border:1px solid var(--line);border-radius:16px;overflow:hidden;background:rgba(10,14,26,.55)">
+      <div style="padding:16px 22px;border-bottom:1px solid var(--line);font-weight:600">
+        Compute × memory × quality Pareto surface
+      </div>
+      <div id="chart-pareto" style="width:100%;height:480px"></div>
+    </div>
+  </div>
 </main>
+
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+<script>
+(function () {
+  if (typeof Plotly === "undefined") return;
+
+  const PAL = { cyan: "#7dd3fc", violet: "#a78bfa", orange: "#fb923c",
+                good: "#34d399", dim: "#64748b", fg: "#e6ecff" };
+
+  const scene = {
+    xaxis: { gridcolor: "rgba(255,255,255,.10)", color: PAL.fg, backgroundcolor: "rgba(0,0,0,0)", showbackground: false },
+    yaxis: { gridcolor: "rgba(255,255,255,.10)", color: PAL.fg, backgroundcolor: "rgba(0,0,0,0)", showbackground: false },
+    zaxis: { gridcolor: "rgba(255,255,255,.10)", color: PAL.fg, backgroundcolor: "rgba(0,0,0,0)", showbackground: false },
+    camera: { eye: { x: 1.55, y: -1.55, z: 1.15 } },
+  };
+  const layout = {
+    paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)",
+    font: { color: PAL.fg, family: "Inter, system-ui, sans-serif", size: 12 },
+    margin: { l: 0, r: 0, t: 20, b: 0 }, scene,
+  };
+
+  const seqLens = [512, 1024, 2048, 4096, 8192, 16384, 32768, 65536];
+  const ratios  = [0.25, 0.375, 0.50, 0.625, 0.75, 0.875, 0.9375];
+  const nL=24, nKV=2, hd=64;
+  const kvMib = (S, r) => 2 * nL * Math.max(1, Math.round(S * (1 - r))) * nKV * hd * 2 / (1024*1024);
+  const kvZ = ratios.map(r => seqLens.map(S => 100 * (1 - kvMib(S, r) / Math.max(kvMib(S, 0), 1e-9))));
+  Plotly.newPlot("chart-kv", [{
+    type: "surface", x: seqLens, y: ratios.map(r => r*100), z: kvZ,
+    colorscale: [[0,PAL.violet],[0.5,PAL.cyan],[1,PAL.orange]],
+    colorbar: { title: "reduction %", tickfont: { color: PAL.fg } },
+    hovertemplate: "S=%{x}, evict=%{y:.1f}%, red=%{z:.1f}%<extra></extra>",
+  }], { ...layout, scene: { ...scene,
+    xaxis: {...scene.xaxis, type: "log", title: "seq len"},
+    yaxis: {...scene.yaxis, title: "eviction %"},
+    zaxis: {...scene.zaxis, title: "KV reduction %"} } },
+  { responsive: true, displaylogo: false });
+
+  const dims = [32,48,64,96,128,192,256];
+  const log10 = x => Math.log(x + 1e-9)/Math.LN10;
+  const fullZ = dims.map(d => seqLens.map(S => log10(2*S*S*d/1e10)));
+  const smsaZ = dims.map(d => seqLens.map(S => log10(2*S*64*d/1e10)));
+  Plotly.newPlot("chart-scaling", [
+    { type: "surface", name: "full Θ(S²·D)", x: seqLens, y: dims, z: fullZ,
+      colorscale: [[0,"#fb923c"],[1,"#c2410c"]], opacity: 0.9, showscale: false },
+    { type: "surface", name: "SMSA Θ(S·w·D)", x: seqLens, y: dims, z: smsaZ,
+      colorscale: [[0,PAL.violet],[1,PAL.good]], opacity: 0.95, showscale: false },
+  ], { ...layout, showlegend: true,
+    legend: { x: 0.02, y: 0.98, bgcolor: "rgba(10,14,26,.6)", bordercolor: PAL.dim, borderwidth: 1, font:{color:PAL.fg} },
+    scene: { ...scene,
+      xaxis: {...scene.xaxis, type: "log", title: "seq len"},
+      yaxis: {...scene.yaxis, title: "head dim D"},
+      zaxis: {...scene.zaxis, title: "log₁₀ ms"} }
+  }, { responsive: true, displaylogo: false });
+
+  const N = 30;
+  const rs = Array.from({length:N}, (_,i) => 0.05 + 0.90 * i/(N-1));
+  const ws = Array.from({length:N}, (_,i) => 0.02 + 0.98 * i/(N-1));
+  const oxC=[], oyM=[], ozQ=[], rzR=[];
+  for (const w of ws) {
+    const rowC=[], rowM=[], rowQ=[], refQ=[];
+    for (const r of rs) {
+      rowC.push(w); rowM.push((1-r)*w);
+      rowQ.push(1 - 0.15*Math.pow(r,1.2) - 0.10*Math.pow(1-w,2));
+      refQ.push(1 - 0.85*Math.pow(r,0.6) - 0.10*Math.pow(1-w,2));
+    }
+    oxC.push(rowC); oyM.push(rowM); ozQ.push(rowQ); rzR.push(refQ);
+  }
+  Plotly.newPlot("chart-pareto", [
+    { type: "surface", name: "OpusEdge", x: oxC, y: oyM, z: ozQ,
+      colorscale: [[0,PAL.violet],[0.5,PAL.cyan],[1,PAL.good]],
+      colorbar: { title: "quality", tickfont: { color: PAL.fg } }, opacity: 0.95 },
+    { type: "surface", name: "random ref", x: oxC, y: oyM, z: rzR,
+      colorscale: [[0,"#374151"],[1,PAL.orange]], showscale: false, opacity: 0.28 },
+  ], { ...layout, showlegend: true,
+    legend: { x: 0.02, y: 0.98, bgcolor: "rgba(10,14,26,.6)", bordercolor: PAL.dim, borderwidth: 1, font:{color:PAL.fg} },
+    scene: { ...scene,
+      xaxis: {...scene.xaxis, title: "compute"},
+      yaxis: {...scene.yaxis, title: "memory"},
+      zaxis: {...scene.zaxis, title: "quality"} }
+  }, { responsive: true, displaylogo: false });
+})();
+</script>
 
 </body>
 </html>

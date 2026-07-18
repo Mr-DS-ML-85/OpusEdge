@@ -1,0 +1,89 @@
+\begin{thebibliography}{10}
+
+\bibitem{tome}
+Daniel Bolya et~al.
+\newblock Token merging: Your {ViT} but faster.
+\newblock In {\em ICLR}, 2023.
+\newblock arXiv:2210.09461.
+
+\bibitem{sagekv}
+Chen Chen et~al.
+\newblock {SAGE-KV}: Token importance-based {KV} cache eviction for efficient
+  long-context {LLM} inference.
+\newblock {\em arXiv preprint arXiv:2410.02252}, 2024.
+
+\bibitem{mamba2ssd}
+Tri Dao and Albert Gu.
+\newblock Transformers are {SSM}s: {Generalized} models and efficient
+  algorithms through structured state space duality.
+\newblock {\em ICML}, 2024.
+\newblock arXiv:2405.21060.
+
+\bibitem{falconh1}
+{Falcon LLM Team, Technology Innovation Institute}.
+\newblock Falcon-{H1}: A family of hybrid language models.
+\newblock {\em arXiv preprint arXiv:2507.22448}, 2025.
+
+\bibitem{mamba1}
+Albert Gu and Tri Dao.
+\newblock Mamba: Linear-time sequence modeling with selective state spaces.
+\newblock {\em arXiv preprint arXiv:2312.00752}, 2023.
+
+\bibitem{mixtral}
+Albert~Q. Jiang et~al.
+\newblock Mixtral of experts.
+\newblock {\em arXiv preprint arXiv:2401.04088}, 2024.
+
+\bibitem{vllm}
+Woosuk Kwon et~al.
+\newblock Efficient memory management for large language model serving with
+  {PagedAttention}.
+\newblock In {\em SOSP}, 2023.
+\newblock arXiv:2309.06180.
+
+\bibitem{spec}
+Yaniv Leviathan et~al.
+\newblock Fast inference from transformers via speculative decoding.
+\newblock In {\em ICML}, 2023.
+\newblock arXiv:2211.17192.
+
+\bibitem{jamba}
+Opher Lieber et~al.
+\newblock Jamba: A hybrid {Transformer-Mamba} language model.
+\newblock {\em arXiv preprint arXiv:2403.19887}, 2024.
+
+\bibitem{llama3}
+{Meta AI}.
+\newblock The {Llama 3} herd of models.
+\newblock {\em arXiv preprint arXiv:2407.21783}, 2024.
+
+\bibitem{olmoe}
+Niklas Muennighoff et~al.
+\newblock {OLMoE}: Open mixture-of-experts language models.
+\newblock {\em arXiv preprint arXiv:2409.02060}, 2024.
+
+\bibitem{qwen25}
+{Qwen Team}.
+\newblock Qwen2.5 technical report.
+\newblock {\em arXiv preprint arXiv:2412.15115}, 2024.
+
+\bibitem{cald}
+Tal Schuster et~al.
+\newblock Confident adaptive language modeling.
+\newblock In {\em NeurIPS}, 2022.
+\newblock arXiv:2207.07061.
+
+\bibitem{adakv}
+Yuan Wang et~al.
+\newblock {Ada-KV}: Optimizing {KV} cache eviction by adaptive budget
+  allocation for efficient {LLM} inference.
+\newblock {\em arXiv preprint arXiv:2407.11550}, 2024.
+
+\bibitem{h2o}
+Zhenyu Zhang et~al.
+\newblock {H\textsubscript{2}O}: Heavy-hitter oracle for efficient generative
+  inference of large language models.
+\newblock In {\em NeurIPS}, 2023.
+\newblock arXiv:2306.14048.
+
+\end{thebibliography}
