@@ -518,12 +518,16 @@ Bug reports, new model backends, and cleaner derivations of the paper equations 
 - [`SECURITY.md`](SECURITY.md) — how to report vulnerabilities privately
 - [`CHANGELOG.md`](CHANGELOG.md) — version history
 
-## Acknowledgements
+## Author
 
-Built by [Irfan Mahir](https://github.com/Mr-DS-ML-85) — 18, Bangladesh — under the Infernix
-Inference Engine project at Furylogic Labs. The reference implementation and this repo were
-polished with Claude Code assistance; every numerical decision maps back to a specific paper
-equation, and the primary source of truth is [`paper/OpusEdge.pdf`](paper/OpusEdge.pdf).
+**OpusEdge is the work of [Irfan Mahir](https://github.com/Mr-DS-ML-85)** — independent
+researcher based in Bangladesh — under the Infernix Inference Engine project at
+Furylogic Labs. Every idea, every equation, every empirical result in
+[`paper/OpusEdge.pdf`](paper/OpusEdge.pdf) is original research by the author. The
+reference C++ engine, Python SDK, benchmark harness, and this repository are the
+author's implementation of that research.
+
+Contact: [`irfan@furylogic.com`](mailto:irfan@furylogic.com).
 
 ## License
 
