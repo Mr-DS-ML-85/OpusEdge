@@ -1,0 +1,17 @@
+# pkg-config metadata for OpusEdge (installed layout).
+#
+# Consumers can then just do:
+#   $ pkg-config --cflags --libs opusedge
+#   -I/usr/local/include/opusedge-1.0.0
+
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@/opusedge-@PROJECT_VERSION@
+
+Name: opusedge
+Description: Telemetry-guided dynamic compute allocation primitives (C++20, header-only)
+Version: @PROJECT_VERSION@
+URL: https://github.com/Mr-DS-ML-85/opusedge
+
+Cflags: -I${includedir} -std=c++20
+Requires: eigen3

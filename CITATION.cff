@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+message: "If you use OpusEdge in academic work, please cite the paper."
+title: "OpusEdge: Telemetry-Guided Dynamic Compute Allocation for Dense, MoE, and Hybrid SSM-Attention Architectures"
+authors:
+  - family-names: "Mahir"
+    given-names: "Irfan"
+    affiliation: "Furylogic Labs / Independent Researcher, Bangladesh"
+date-released: 2026-06-01
+version: "1.0.0"
+url: "https://github.com/Mr-DS-ML-85/opusedge"
+repository-code: "https://github.com/Mr-DS-ML-85/opusedge"
+license: PolyForm-Noncommercial-1.0.0
+license-url: https://polyformproject.org/licenses/noncommercial/1.0.0/
+keywords:
+  - "state space models"
+  - "kv cache compression"
+  - "efficient inference"
+  - "hybrid transformers"
+  - "mixture of experts"
+  - "attention routing"
+  - "dynamic compute allocation"
+  - "SelKV"
+  - "SMSA"
+  - "Delta-AR"
+preferred-citation:
+  type: article
+  title: "OpusEdge: Telemetry-Guided Dynamic Compute Allocation for Dense, MoE, and Hybrid SSM-Attention Architectures"
+  authors:
+    - family-names: "Mahir"
+      given-names: "Irfan"
+  year: 2026
+  month: 6
+  notes: "Furylogic Labs / Infernix Inference Engine Project"

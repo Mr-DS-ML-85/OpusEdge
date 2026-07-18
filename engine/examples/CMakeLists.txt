@@ -1,0 +1,5 @@
+add_executable(delta_ar_demo delta_ar_demo.cpp)
+target_link_libraries(delta_ar_demo PRIVATE opusedge)
+
+add_executable(all_primitives_demo all_primitives_demo.cpp)
+target_link_libraries(all_primitives_demo PRIVATE opusedge)

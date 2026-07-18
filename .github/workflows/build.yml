@@ -1,0 +1,53 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  cpp:
+    name: engine · ubuntu · gcc
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: install deps
+        run: sudo apt-get update && sudo apt-get install -y libeigen3-dev cmake g++
+
+      - name: configure
+        run: |
+          cmake -S engine -B engine/build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DOPUSEDGE_BUILD_EXAMPLES=ON \
+            -DOPUSEDGE_BUILD_BENCHMARKS=ON \
+            -DOPUSEDGE_BUILD_TESTS=ON
+
+      - name: build
+        run: cmake --build engine/build -j$(nproc)
+
+      - name: run tests
+        run: ctest --test-dir engine/build --output-on-failure
+
+      - name: run demo
+        run: ./engine/build/examples/all_primitives_demo
+
+      - name: run bench (delta-ar)
+        run: ./engine/build/benchmarks/bench_delta_ar
+
+      - name: run bench (scaling)
+        run: |
+          mkdir -p engine/build/lib
+          ./engine/build/benchmarks/bench_scaling \
+              --seq 128,256,512,1024,2048 \
+              --iters 5 --warmup 2 \
+              --out scaling.csv
+          head -5 scaling.csv
+
+      - name: run bench (per-family pipeline)
+        run: |
+          ./engine/build/benchmarks/bench_pipeline \
+              --seq 512 --iters 5 --warmup 2 \
+              --out pipeline.csv
+          head -10 pipeline.csv

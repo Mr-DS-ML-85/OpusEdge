@@ -1,0 +1,68 @@
+Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
+
+<https://creativecommons.org/licenses/by-nc/4.0/legalcode>
+
+This license applies to the manuscript and its accompanying materials in this
+directory — the paper text, the DOCX / PDF renderings, figures, tables, and
+any derived preprints. **It does not apply to the code**, which is covered by
+the PolyForm Noncommercial License 1.0.0 at the repository root.
+
+The two licenses are compatible in spirit — both prohibit commercial use — but
+serve different work types (creative works vs software).
+
+
+Attribution-NonCommercial 4.0 International — human-readable summary
+─────────────────────────────────────────────────────────────────────
+
+You are free to:
+
+  * Share — copy and redistribute the material in any medium or format
+  * Adapt — remix, transform, and build upon the material
+
+The licensor cannot revoke these freedoms as long as you follow the license
+terms.
+
+Under the following terms:
+
+  * Attribution — You must give appropriate credit, provide a link to the
+    license, and indicate if changes were made. You may do so in any
+    reasonable manner, but not in any way that suggests the licensor
+    endorses you or your use.
+
+  * NonCommercial — You may not use the material for commercial purposes.
+
+  * No additional restrictions — You may not apply legal terms or
+    technological measures that legally restrict others from doing anything
+    the license permits.
+
+Notices:
+
+  You do not have to comply with the license for elements of the material
+  in the public domain or where your use is permitted by an applicable
+  exception or limitation.
+
+  No warranties are given. The license may not give you all of the
+  permissions necessary for your intended use. For example, other rights
+  such as publicity, privacy, or moral rights may limit how you use the
+  material.
+
+
+Full legal code
+───────────────
+
+The full legal text is available at
+https://creativecommons.org/licenses/by-nc/4.0/legalcode
+
+Attribution should reference the work as:
+
+  Irfan Mahir. "OpusEdge: Telemetry-Guided Dynamic Compute Allocation for
+  Dense, MoE, and Hybrid SSM-Attention Architectures." Furylogic Labs /
+  Infernix Inference Engine Project, 2026.
+  https://github.com/Mr-DS-ML-85/opusedge
+
+Commercial licensing enquiries: open a private discussion at
+https://github.com/Mr-DS-ML-85.
+
+---
+
+Copyright (c) 2026 Irfan Mahir.

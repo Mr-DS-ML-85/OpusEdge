@@ -1,0 +1,11 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+# Pull in Eigen so consumers of opusedge::opusedge don't have to.
+find_dependency(Eigen3 3.4)
+
+set_and_check(OPUSEDGE_INCLUDE_DIR "@PACKAGE_CMAKE_INSTALL_INCLUDEDIR@/opusedge-@PROJECT_VERSION@")
+
+include("${CMAKE_CURRENT_LIST_DIR}/opusedgeTargets.cmake")
+
+check_required_components(opusedge)

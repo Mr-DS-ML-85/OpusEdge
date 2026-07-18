@@ -1,0 +1,1108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>OpusEdge · telemetry-guided compute allocation for LLMs</title>
+<meta name="description" content="OpusEdge — a single Δ signal, ten primitives, one framework for dense, MoE, and hybrid SSM–attention inference. 100.5× quality at 87.5% KV compression." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:        #05070d;
+    --bg-2:      #0a0e1a;
+    --fg:        #e6ecff;
+    --muted:     #8892b0;
+    --line:      rgba(255,255,255,.07);
+    --accent:    #7dd3fc;   /* cyan */
+    --accent-2:  #a78bfa;   /* violet */
+    --accent-3:  #fb923c;   /* orange, δ */
+    --good:      #34d399;
+    --code-bg:   #0d1220;
+    --grad:      linear-gradient(120deg, #7dd3fc 0%, #a78bfa 55%, #fb923c 100%);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-weight: 400;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { color: var(--accent-2); }
+  code, pre, .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+  /* ── fixed 3D backdrop ─────────────────────────────────────── */
+  #stage {
+    position: fixed; inset: 0;
+    width: 100vw; height: 100vh;
+    z-index: 0;
+    background:
+      radial-gradient(1200px 800px at 70% 15%, rgba(167,139,250,.15), transparent 60%),
+      radial-gradient(900px 600px at 20% 80%, rgba(125,211,252,.10), transparent 55%),
+      var(--bg);
+  }
+  #stage canvas { display: block; width: 100%; height: 100%; }
+
+  /* subtle grid overlay */
+  #grid {
+    position: fixed; inset: 0; z-index: 1; pointer-events: none;
+    background-image:
+      linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: radial-gradient(ellipse at 50% 50%, black 40%, transparent 80%);
+  }
+
+  /* vignette */
+  #vignette {
+    position: fixed; inset: 0; z-index: 2; pointer-events: none;
+    box-shadow: inset 0 0 240px 80px var(--bg);
+  }
+
+  /* ── nav ──────────────────────────────────────────────────── */
+  nav.top {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 10;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 28px;
+    backdrop-filter: blur(14px);
+    background: linear-gradient(180deg, rgba(5,7,13,.7), rgba(5,7,13,.0));
+    border-bottom: 1px solid var(--line);
+  }
+  nav.top .brand {
+    display: flex; align-items: center; gap: 10px;
+    font-weight: 700; letter-spacing: .01em;
+  }
+  nav.top .brand .glyph {
+    width: 26px; height: 26px;
+    display: grid; place-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    color: var(--accent-3);
+    background: radial-gradient(circle at 30% 30%, rgba(251,146,60,.35), rgba(251,146,60,0) 70%);
+    border: 1px solid rgba(251,146,60,.35);
+    border-radius: 8px;
+  }
+  nav.top .brand .name { font-weight: 700; font-size: 16px; }
+  nav.top .brand .name em {
+    font-style: normal;
+    background: var(--grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  nav.top .links {
+    display: flex; gap: 22px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  nav.top .links a { color: var(--muted); }
+  nav.top .links a:hover { color: var(--fg); }
+  nav.top .cta {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(125,211,252,.35);
+    background: rgba(125,211,252,.08);
+    color: var(--fg);
+    font-size: 13px; font-weight: 500;
+    transition: all .2s;
+  }
+  nav.top .cta:hover { background: rgba(125,211,252,.18); color: #fff; }
+
+  /* ── scroll sections ──────────────────────────────────────── */
+  main {
+    position: relative; z-index: 5;
+  }
+  section {
+    min-height: 100vh;
+    padding: 100px 28px 60px;
+    display: flex; flex-direction: column;
+    justify-content: center;
+    max-width: 1100px; margin: 0 auto;
+    position: relative;
+  }
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 18px;
+  }
+  h1.hero {
+    font-size: clamp(42px, 6vw, 84px);
+    line-height: 1.02;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin: 0 0 22px;
+  }
+  h1.hero .grad {
+    background: var(--grad);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  h2.section {
+    font-size: clamp(28px, 3.5vw, 48px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0 0 18px;
+  }
+  h2.section .grad {
+    background: var(--grad);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  p.lead {
+    font-size: clamp(17px, 1.4vw, 20px);
+    color: var(--muted);
+    max-width: 700px;
+    margin: 0 0 32px;
+  }
+  p.body {
+    font-size: 16px; color: var(--muted);
+    max-width: 640px;
+    margin: 0 0 20px;
+  }
+
+  .hero-actions {
+    display: flex; gap: 14px; flex-wrap: wrap; margin-top: 12px;
+  }
+  .btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 12px 22px;
+    border-radius: 999px;
+    font-size: 14px; font-weight: 600;
+    transition: all .2s;
+    border: 1px solid transparent;
+  }
+  .btn-primary {
+    background: var(--fg);
+    color: var(--bg);
+  }
+  .btn-primary:hover { background: #fff; transform: translateY(-1px); }
+  .btn-ghost {
+    background: rgba(255,255,255,.04);
+    color: var(--fg);
+    border-color: var(--line);
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.2); }
+  .kbd {
+    padding: 2px 7px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    background: rgba(255,255,255,.03);
+  }
+
+  /* stats row */
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 18px; margin-top: 44px;
+    max-width: 720px;
+  }
+  .stat {
+    padding: 18px 20px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: rgba(10, 14, 26, 0.55);
+    backdrop-filter: blur(10px);
+  }
+  .stat .val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 26px; font-weight: 700;
+    background: var(--grad);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    line-height: 1;
+  }
+  .stat .lbl {
+    margin-top: 8px;
+    font-size: 12px; letter-spacing: .05em;
+    color: var(--muted); text-transform: uppercase;
+  }
+
+  /* code card */
+  .code-card {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 18px 20px;
+    overflow-x: auto;
+    max-width: 720px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    line-height: 1.65;
+    color: #cdd6f4;
+    backdrop-filter: blur(10px);
+  }
+  .code-card .k  { color: #a78bfa; }
+  .code-card .s  { color: #7dd3fc; }
+  .code-card .c  { color: #64748b; font-style: italic; }
+  .code-card .fn { color: #fb923c; }
+  .code-card .n  { color: #34d399; }
+
+  /* section split */
+  .split {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: 60px;
+    align-items: center;
+  }
+  @media (max-width: 900px) { .split { grid-template-columns: 1fr; } }
+
+  /* primitive card grid */
+  .prims {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 14px;
+    margin-top: 36px;
+    max-width: 1000px;
+  }
+  .prim {
+    padding: 20px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: rgba(13, 18, 32, 0.55);
+    backdrop-filter: blur(10px);
+    transition: all .2s;
+  }
+  .prim:hover {
+    border-color: rgba(125,211,252,.35);
+    transform: translateY(-2px);
+  }
+  .prim .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: .05em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .prim h3 {
+    margin: 0 0 8px;
+    font-size: 18px; font-weight: 600;
+    color: var(--fg);
+  }
+  .prim p {
+    margin: 0;
+    font-size: 13.5px; color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* bench card */
+  .bench-card {
+    padding: 24px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: rgba(10, 14, 26, 0.6);
+    backdrop-filter: blur(12px);
+    max-width: 780px;
+  }
+  .bench-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto;
+    gap: 18px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 14px;
+    align-items: center;
+  }
+  .bench-row:last-child { border-bottom: 0; }
+  .bench-row .lbl { color: var(--muted); }
+  .bench-row .n   { font-family: 'JetBrains Mono', monospace; color: var(--fg); }
+  .bench-row .win {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--good); font-weight: 600;
+  }
+  .bench-row.hdr {
+    font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--muted); font-weight: 600;
+  }
+
+  /* footer */
+  footer {
+    position: relative; z-index: 5;
+    padding: 60px 28px 60px;
+    border-top: 1px solid var(--line);
+    background: rgba(5,7,13,.6);
+    backdrop-filter: blur(14px);
+  }
+  footer .inner {
+    max-width: 1100px; margin: 0 auto;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 20px;
+  }
+  footer .cite {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* section marker (dot rail) */
+  .rail {
+    position: fixed; right: 22px; top: 50%; transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 10px;
+    z-index: 8;
+  }
+  .rail .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(255,255,255,.15);
+    transition: all .3s;
+  }
+  .rail .dot.active {
+    background: var(--accent);
+    transform: scale(1.4);
+    box-shadow: 0 0 12px rgba(125,211,252,.6);
+  }
+
+  /* section title tag inline with 3D scene indicator */
+  .scene-tag {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 6px 12px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: .12em;
+    color: var(--muted); text-transform: uppercase;
+    background: rgba(10, 14, 26, .55);
+    margin-bottom: 20px;
+  }
+  .scene-tag .pulse {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; }
+    50%     { opacity: .35; }
+  }
+
+  ::selection { background: rgba(125,211,252,.35); color: #fff; }
+</style>
+</head>
+<body>
+
+<div id="stage"></div>
+<div id="grid"></div>
+<div id="vignette"></div>
+
+<nav class="top">
+  <div class="brand">
+    <div class="glyph">Δ</div>
+    <div class="name">Opus<em>Edge</em></div>
+  </div>
+  <div class="links">
+    <a href="#primitives">Primitives</a>
+    <a href="#bench">Benchmarks</a>
+    <a href="../docs/architecture.md">Architecture</a>
+    <a href="../paper/OpusEdge.txt">Paper</a>
+  </div>
+  <a class="cta" href="https://github.com/Mr-DS-ML-85/opusedge">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5a12 12 0 0 0-3.79 23.4c.6.1.83-.26.83-.58v-2.02c-3.34.73-4.04-1.42-4.04-1.42-.54-1.4-1.33-1.78-1.33-1.78-1.09-.75.08-.73.08-.73 1.21.09 1.85 1.24 1.85 1.24 1.08 1.85 2.83 1.31 3.52 1.01.11-.78.42-1.31.76-1.61-2.66-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.31-.54-1.53.12-3.19 0 0 1.01-.32 3.3 1.24a11.4 11.4 0 0 1 6.01 0c2.29-1.56 3.3-1.24 3.3-1.24.66 1.66.25 2.88.12 3.19.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.62-5.49 5.92.43.37.82 1.1.82 2.22v3.29c0 .32.22.69.83.58A12 12 0 0 0 12 .5z"/></svg>
+    GitHub
+  </a>
+</nav>
+
+<div class="rail" id="rail"></div>
+
+<main>
+
+  <!-- ── Section 0 · HERO ────────────────────────────────────── -->
+  <section id="hero" data-scene="hero">
+    <div class="eyebrow">Furylogic Labs · June 2026</div>
+    <h1 class="hero">
+      One signal.<br />
+      30 primitives.<br />
+      <span class="grad">Every architecture.</span>
+    </h1>
+    <p class="lead">
+      <strong>OpusEdge</strong> is a telemetry-guided compute-allocation framework for
+      dense, MoE, and hybrid SSM–attention LLMs. A single per-token importance signal —
+      <span class="mono" style="color:var(--accent-3)">Δ</span> — drives 10 core primitives,
+      4 stabilizers, and 2 task controllers across KV eviction, sparse attention, head gating,
+      state compression, and low-rank projection.
+      No retraining. Runs on a single RTX 4060.
+    </p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="#quickstart">Get started →</a>
+      <a class="btn btn-ghost" href="../paper/OpusEdge.txt">Read the paper</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="val">100.5×</div><div class="lbl">quality @ 87.5% KV compression</div></div>
+      <div class="stat"><div class="val">4.98×</div><div class="lbl">attention speedup @ 2k tokens</div></div>
+      <div class="stat"><div class="val">98.9%</div><div class="lbl">integrated VRAM reduction</div></div>
+      <div class="stat"><div class="val">30</div><div class="lbl">primitive bindings (C++/Py)</div></div>
+    </div>
+
+    <div style="display:flex;gap:20px;margin-top:28px;flex-wrap:wrap;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);letter-spacing:.05em">
+      <span style="display:inline-flex;align-items:center;gap:8px"><span style="width:10px;height:10px;background:#7dd3fc;border-radius:2px;box-shadow:0 0 8px #7dd3fc"></span>10 core</span>
+      <span style="display:inline-flex;align-items:center;gap:8px"><span style="width:10px;height:10px;background:#a78bfa;border-radius:2px;box-shadow:0 0 8px #a78bfa"></span>4 stabilizers</span>
+      <span style="display:inline-flex;align-items:center;gap:8px"><span style="width:10px;height:10px;background:#fb923c;border-radius:2px;box-shadow:0 0 8px #fb923c"></span>2 task controllers</span>
+    </div>
+  </section>
+
+  <!-- ── Section 1 · SELKV ────────────────────────────────────── -->
+  <section id="selkv" data-scene="selkv">
+    <div class="scene-tag"><span class="pulse"></span> Scene 01 · SelKV eviction</div>
+    <div class="split">
+      <div>
+        <h2 class="section">
+          <span class="grad">Evict what the model already knows is boring.</span>
+        </h2>
+        <p class="body">
+          Every KV entry in the cache has a Δ score attached — free in hybrid models,
+          O(L) in dense ones. <strong>SelKV</strong> drops the bottom-p% before the attention
+          kernel runs. At 87.5% compression, PPL degrades by <strong>5.16</strong> — random
+          eviction blows up to <strong>519.01</strong>. That's <strong>100.5×</strong>.
+        </p>
+        <div class="code-card">
+<span class="c">// drop the bottom 87.5%</span>
+<span class="k">auto</span> r <span class="k">=</span> <span class="fn">SelKV::evict</span>(delta, <span class="n">0.875</span>, delta.<span class="fn">size</span>());
+<span class="c">// r.retained_indices  ← 12.5% of the cache survives</span>
+<span class="c">// r.evicted_indices   ← everything else is gone</span>
+        </div>
+      </div>
+      <div></div>
+    </div>
+  </section>
+
+  <!-- ── Section 2 · SMSA ────────────────────────────────────── -->
+  <section id="smsa" data-scene="smsa">
+    <div class="scene-tag"><span class="pulse"></span> Scene 02 · SMSA sliding window</div>
+    <div class="split">
+      <div></div>
+      <div>
+        <h2 class="section">
+          <span class="grad">Don't recompute what the SSM already covered.</span>
+        </h2>
+        <p class="body">
+          In parallel hybrid blocks the SSM head already carries long-range dependencies via
+          the SSD mask. Attention only needs a local window — <strong>SMSA</strong> makes
+          that window adaptive, scaled by 1/Δ.
+        </p>
+        <p class="body">
+          At w = 64 and 2,048 tokens: <strong>3.56–4.98× measured speedup</strong>,
+          <strong>96.9% VRAM reduction</strong>. PyTorch eager mode. No custom kernels needed.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Section 3 · DELTA-AR ─────────────────────────────────── -->
+  <section id="delta-ar" data-scene="delta-ar">
+    <div class="scene-tag"><span class="pulse"></span> Scene 03 · Delta-AR routing</div>
+    <div class="split">
+      <div>
+        <h2 class="section">
+          <span class="grad">Route before the softmax runs.</span>
+        </h2>
+        <p class="body">
+          SelKV evicts <em>after</em> attention wastes FLOPs. SMSA uses a fixed window.
+          <strong>Delta-AR</strong> is the third option — before softmax runs, each query
+          picks its top-K key positions by Δ. Attention drops from O(S²) to O(S·K).
+        </p>
+        <p class="body">
+          Masked tokens don't vanish — they feed the <strong>EB-DAR</strong> reservoir, and
+          re-enter when their residual grows past μ + 0.1σ. No information shock at 50% pruning.
+        </p>
+      </div>
+      <div></div>
+    </div>
+  </section>
+
+  <!-- ── Section 4 · STATE COMPRESS ─────────────────────────────── -->
+  <section id="statecompress" data-scene="statecompress">
+    <div class="scene-tag"><span class="pulse"></span> Scene 04 · StateCompress channels</div>
+    <div class="split">
+      <div></div>
+      <div>
+        <h2 class="section">
+          <span class="grad">Zero the channels that stopped mattering.</span>
+        </h2>
+        <p class="body">
+          When Δ ≪ τ the SSM state update collapses to passive decay. High-frequency channels
+          become structurally redundant. <strong>StateCompress</strong> zeros them by magnitude
+          — 37.5% hidden-state reduction at near-zero PPL cost.
+        </p>
+        <p class="body">
+          Bonus on mobile silicon: zeroed SRAM cells don't toggle across layers, cutting
+          dynamic power on the chip's thermal envelope.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Section 5 · PRIMITIVES GRID ─────────────────────────── -->
+  <section id="primitives" data-scene="orbit">
+    <div class="scene-tag"><span class="pulse"></span> Scene 05 · full primitive orbit</div>
+    <h2 class="section">10 core + 4 stabilizers + 2 controllers.</h2>
+    <p class="lead">
+      Every primitive is a pure function of Δ. Compose freely; stabilizers prevent the cliffs;
+      the CAL family modulates aggressiveness by task.
+    </p>
+
+    <h3 style="margin:8px 0 12px;font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-family:'JetBrains Mono',monospace">Core · 10</h3>
+    <div class="prims">
+      <div class="prim"><div class="tag">KV eviction</div><h3>SelKV</h3><p>Drop bottom-p% tokens by Δ before attention runs. 100.5× vs random at 87.5%.</p></div>
+      <div class="prim"><div class="tag">Sparse attention</div><h3>SMSA</h3><p>Adaptive sliding window scaled by 1/Δ. 4.98× at 2,048 tokens.</p></div>
+      <div class="prim"><div class="tag">Sparse attention</div><h3>Delta-AR</h3><p>Per-query top-K routing before softmax. O(S²) → O(S·K).</p></div>
+      <div class="prim"><div class="tag">Rank</div><h3>ΔRank</h3><p>Per-token low-rank Q/K/V (16/32/64/128 tiers). 64× on Q/K/V matmul.</p></div>
+      <div class="prim"><div class="tag">Heads</div><h3>HeadDeactivate</h3><p>Gate heads by token entropy. 87.5% off on function-word tokens.</p></div>
+      <div class="prim"><div class="tag">State</div><h3>StateCompress</h3><p>Zero low-magnitude channels when Δ ≪ τ. 37.5% state at ~0 PPL.</p></div>
+      <div class="prim"><div class="tag">KV eviction</div><h3>DenseEvic</h3><p>Protected-boundary + candidate-pool eviction for dense models. 13.7×.</p></div>
+      <div class="prim"><div class="tag">Composite</div><h3>GAKV / R-GAKV</h3><p>Semantic cache — evicts only when Δ and IR both agree.</p></div>
+      <div class="prim"><div class="tag">Search</div><h3>Pareto Frontier</h3><p>Sweep (ratio, window, rank, keep) → knee-point selector.</p></div>
+      <div class="prim"><div class="tag">MoE</div><h3>Router-IR</h3><p>Per-token routing confidence (max-min or entropy). Feeds GAKV.</p></div>
+    </div>
+
+    <h3 style="margin:36px 0 12px;font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-family:'JetBrains Mono',monospace">Stabilizers · 4</h3>
+    <div class="prims">
+      <div class="prim"><div class="tag">state recycle</div><h3>MPSR / SACT</h3><p>Project evicted KV into the SSM state so no context is lost — infinite-horizon overflow buffer.</p></div>
+      <div class="prim"><div class="tag">compute buffer</div><h3>EB-AR / EB-DAR</h3><p>Scale compute by output entropy; recycle masked delta residuals through a temporal reservoir.</p></div>
+      <div class="prim"><div class="tag">soft SVD</div><h3>SSR / CASP + NDPA</h3><p>Sigmoid-gated soft rank truncation + rank-1 phase rectifier for Proxy-Δ.</p></div>
+      <div class="prim"><div class="tag">head fallback</div><h3>IPSS / CSA</h3><p>Sub-salient heads fall through to a linear-time K̄ path instead of hard-zeroing.</p></div>
+    </div>
+
+    <h3 style="margin:36px 0 12px;font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-family:'JetBrains Mono',monospace">Task controllers · 2</h3>
+    <div class="prims">
+      <div class="prim"><div class="tag">rigidity map</div><h3>CAL</h3><p>Classify the prompt into a rigidity tier (code/math/summarize/…) and modulate every threshold by (1 + rigidity).</p></div>
+      <div class="prim"><div class="tag">confidence freeze</div><h3>R-CAL</h3><p>EMA over token log-prob confidence; freeze recomputation once the model has settled on a stable regime.</p></div>
+    </div>
+
+    <p class="body" style="margin-top:32px">
+      Under the hood: <strong>16 C++ headers</strong>, <strong>~50 member functions</strong>,
+      and <strong>30 Python bindings</strong> (see the <code>all_primitives_demo</code> output).
+    </p>
+  </section>
+
+  <!-- ── Section 6 · BENCHMARKS ─────────────────────────────── -->
+  <section id="bench" data-scene="bench">
+    <div class="scene-tag"><span class="pulse"></span> Scene 06 · empirical results</div>
+    <h2 class="section">Reproduced from the paper.</h2>
+    <p class="lead">
+      All numbers on a single RTX 4060 8 GB, PyTorch 2.12.1 eager, INT4 bitsandbytes.
+    </p>
+
+    <div class="bench-card" style="margin-bottom:22px">
+      <div class="bench-row hdr"><div class="lbl">SelKV · Falcon-H1-0.5B · WT-103</div><div>SelKV PPL</div><div>Random PPL</div><div>Quality</div></div>
+      <div class="bench-row"><div class="lbl">50 % eviction</div><div class="n">1.84</div><div class="n">55.61</div><div class="win">30.3×</div></div>
+      <div class="bench-row"><div class="lbl">75 % eviction</div><div class="n">3.63</div><div class="n">491.50</div><div class="win">135.3×</div></div>
+      <div class="bench-row"><div class="lbl">87.5 % eviction</div><div class="n">5.16</div><div class="n">519.01</div><div class="win">100.5×</div></div>
+      <div class="bench-row"><div class="lbl">93.8 % eviction</div><div class="n">18.55</div><div class="n">1923.84</div><div class="win">103.7×</div></div>
+    </div>
+
+    <div class="bench-card">
+      <div class="bench-row hdr"><div class="lbl">SMSA speedup @ 2048 tokens</div><div>Full (ms)</div><div>SMSA (ms)</div><div>Speedup</div></div>
+      <div class="bench-row"><div class="lbl">Falcon-H1-0.5B</div><div class="n">0.126</div><div class="n">0.035</div><div class="win">3.56×</div></div>
+      <div class="bench-row"><div class="lbl">Qwen2.5-0.5B</div><div class="n">0.083</div><div class="n">0.017</div><div class="win">4.98×</div></div>
+    </div>
+  </section>
+
+  <!-- ── Section 7 · QUICKSTART / CTA ─────────────────────────── -->
+  <section id="quickstart" data-scene="cta">
+    <div class="scene-tag"><span class="pulse"></span> Scene 07 · install</div>
+    <h2 class="section">Five-minute build.</h2>
+    <div class="code-card">
+<span class="c"># header-only C++20 engine, one dep (Eigen)</span>
+git clone https://github.com/Mr-DS-ML-85/opusedge <span class="k">&amp;&amp;</span> cd opusedge
+sudo apt-get install libeigen3-dev
+cmake <span class="k">-S</span> engine <span class="k">-B</span> engine/build \
+  <span class="k">-D</span>OPUSEDGE_BUILD_EXAMPLES=ON \
+  <span class="k">-D</span>OPUSEDGE_BUILD_BENCHMARKS=ON
+cmake --build engine/build <span class="k">-j</span>
+./engine/build/examples/all_primitives_demo
+    </div>
+    <div class="hero-actions" style="margin-top:32px">
+      <a class="btn btn-primary" href="https://github.com/Mr-DS-ML-85/opusedge">Star on GitHub →</a>
+      <a class="btn btn-ghost" href="../docs/getting-started.md">Read the docs</a>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="inner">
+    <div class="cite">
+      @misc{opusedge2026, author={Irfan Mahir}, year={2026},<br />
+      title={OpusEdge: Telemetry-Guided Dynamic Compute Allocation}}
+    </div>
+    <div>
+      <a href="../paper/OpusEdge.txt" style="margin-right:20px;color:var(--muted)">Paper</a>
+      <a href="../docs/primitives.md" style="margin-right:20px;color:var(--muted)">Docs</a>
+      <a href="../LICENSE" style="color:var(--muted)">PolyForm NC 1.0</a>
+    </div>
+  </div>
+</footer>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.161.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.161.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass }     from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+
+// ── renderer setup ────────────────────────────────────────────────
+const stage = document.getElementById('stage');
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setClearColor(0x000000, 0);
+stage.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x05070d, 0.03);
+
+const camera = new THREE.PerspectiveCamera(48, window.innerWidth / window.innerHeight, 0.1, 400);
+camera.position.set(0, 0, 22);
+
+// ── post-processing (bloom) ──────────────────────────────────────
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(
+  new THREE.Vector2(window.innerWidth, window.innerHeight),
+  0.85,   // strength
+  0.75,   // radius
+  0.18    // threshold
+);
+composer.addPass(bloom);
+
+// ── shared materials & palette ───────────────────────────────────
+const COL = {
+  cyan:   new THREE.Color('#7dd3fc'),
+  violet: new THREE.Color('#a78bfa'),
+  orange: new THREE.Color('#fb923c'),
+  good:   new THREE.Color('#34d399'),
+  dim:    new THREE.Color('#1e293b'),
+};
+
+const glowMat = (col, opacity = 0.9) => new THREE.MeshBasicMaterial({
+  color: col, transparent: true, opacity, depthWrite: false
+});
+
+// ── background star field ────────────────────────────────────────
+{
+  const geo = new THREE.BufferGeometry();
+  const N = 700;
+  const pos = new Float32Array(N * 3);
+  const col = new Float32Array(N * 3);
+  for (let i = 0; i < N; i++) {
+    const r = 40 + Math.random() * 100;
+    const th = Math.random() * Math.PI * 2;
+    const ph = Math.acos(2 * Math.random() - 1);
+    pos[i*3+0] = r * Math.sin(ph) * Math.cos(th);
+    pos[i*3+1] = r * Math.sin(ph) * Math.sin(th);
+    pos[i*3+2] = r * Math.cos(ph);
+    const c = Math.random() < .7 ? COL.cyan : (Math.random() < .5 ? COL.violet : COL.orange);
+    col[i*3+0] = c.r; col[i*3+1] = c.g; col[i*3+2] = c.b;
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('color',    new THREE.BufferAttribute(col, 3));
+  const mat = new THREE.PointsMaterial({
+    size: 0.06, vertexColors: true, transparent: true, opacity: .55,
+    sizeAttenuation: true, depthWrite: false,
+  });
+  scene.add(new THREE.Points(geo, mat));
+}
+
+// ── HERO GROUP: Δ core + orbiting primitives ─────────────────────
+const heroGroup = new THREE.Group();
+scene.add(heroGroup);
+
+// central Δ core: torus knot + inner sphere
+const core = new THREE.Group();
+{
+  const knot = new THREE.Mesh(
+    new THREE.TorusKnotGeometry(1.6, 0.28, 220, 32, 2, 3),
+    new THREE.MeshBasicMaterial({ color: COL.orange, wireframe: true, transparent: true, opacity: .55 })
+  );
+  core.add(knot);
+  const inner = new THREE.Mesh(
+    new THREE.IcosahedronGeometry(1.0, 1),
+    glowMat(COL.orange, .85)
+  );
+  core.add(inner);
+  const halo = new THREE.Mesh(
+    new THREE.SphereGeometry(2.4, 32, 32),
+    new THREE.MeshBasicMaterial({ color: COL.orange, transparent: true, opacity: .04, side: THREE.BackSide })
+  );
+  core.add(halo);
+}
+heroGroup.add(core);
+
+// orbiting primitive nodes (10 core + 4 stabilizers + 2 controllers = 16)
+const primNodes = [];
+const primNames = [
+  'SelKV','SMSA','Delta-AR','ΔRank','HeadDeact','StateCompress',
+  'DenseEvic','GAKV','Pareto','Router-IR',        // core · 10
+  'MPSR','EB-AR','SSR','IPSS',                     // stabilizers · 4
+  'CAL','R-CAL',                                    // controllers · 2
+];
+const PRIM_N = primNames.length;
+{
+  const R = 6.5;
+  for (let i = 0; i < PRIM_N; i++) {
+    const a = (i / PRIM_N) * Math.PI * 2;
+    const g = new THREE.Group();
+    // core = cyan, stabilizer = violet, controller = orange
+    const tier = i < 10 ? COL.cyan : (i < 14 ? COL.violet : COL.orange);
+    const cube = new THREE.Mesh(
+      new THREE.BoxGeometry(0.55, 0.55, 0.55),
+      glowMat(tier, .95)
+    );
+    const wire = new THREE.Mesh(
+      new THREE.BoxGeometry(0.66, 0.66, 0.66),
+      new THREE.MeshBasicMaterial({ color: tier, wireframe: true, transparent: true, opacity: .35 })
+    );
+    g.add(cube); g.add(wire);
+    g.position.set(Math.cos(a) * R, Math.sin(a * 1.3) * 1.5, Math.sin(a) * R);
+    g.userData = { baseA: a, name: primNames[i] };
+    primNodes.push(g);
+    heroGroup.add(g);
+  }
+
+  // orbit ring
+  const ring = new THREE.Mesh(
+    new THREE.RingGeometry(R - 0.05, R + 0.05, 128),
+    new THREE.MeshBasicMaterial({ color: COL.cyan, transparent: true, opacity: .18, side: THREE.DoubleSide })
+  );
+  ring.rotation.x = Math.PI / 2;
+  heroGroup.add(ring);
+}
+
+// ── SELKV GROUP: token grid, ones with low Δ fade & drop ─────────
+const selkvGroup = new THREE.Group();
+selkvGroup.visible = false;
+scene.add(selkvGroup);
+const tokens = [];
+{
+  const cols = 16, rows = 8;
+  const spacing = 0.75;
+  for (let i = 0; i < cols; i++) {
+    for (let j = 0; j < rows; j++) {
+      const delta = Math.random();
+      const cube = new THREE.Mesh(
+        new THREE.BoxGeometry(0.42, 0.42, 0.42),
+        new THREE.MeshBasicMaterial({
+          color: delta > 0.5 ? COL.cyan : COL.violet,
+          transparent: true, opacity: 0.35 + delta * 0.6,
+        })
+      );
+      cube.position.set(
+        (i - cols/2 + 0.5) * spacing,
+        (j - rows/2 + 0.5) * spacing,
+        0
+      );
+      cube.userData = { delta, homeY: cube.position.y };
+      tokens.push(cube);
+      selkvGroup.add(cube);
+    }
+  }
+}
+
+// ── SMSA GROUP: sequence bar + sliding window highlight ──────────
+const smsaGroup = new THREE.Group();
+smsaGroup.visible = false;
+scene.add(smsaGroup);
+const smsaTokens = [];
+{
+  const N = 40;
+  const spacing = 0.42;
+  for (let i = 0; i < N; i++) {
+    const cube = new THREE.Mesh(
+      new THREE.BoxGeometry(0.32, 0.32, 0.32),
+      new THREE.MeshBasicMaterial({ color: COL.dim, transparent: true, opacity: .6 })
+    );
+    cube.position.set((i - N/2 + 0.5) * spacing, 0, 0);
+    smsaTokens.push(cube);
+    smsaGroup.add(cube);
+  }
+}
+
+// ── DELTA-AR GROUP: queries + top-K routing lines ────────────────
+const darGroup = new THREE.Group();
+darGroup.visible = false;
+scene.add(darGroup);
+const darQueries = [], darKeys = [], darLines = [];
+{
+  const NQ = 12;
+  for (let i = 0; i < NQ; i++) {
+    const y = 3.5;
+    const q = new THREE.Mesh(
+      new THREE.SphereGeometry(0.18, 12, 12),
+      glowMat(COL.orange, .9)
+    );
+    q.position.set((i - NQ/2 + 0.5) * 0.8, y, 0);
+    darQueries.push(q); darGroup.add(q);
+  }
+  const NK = 30;
+  for (let i = 0; i < NK; i++) {
+    const y = -3.5;
+    const k = new THREE.Mesh(
+      new THREE.SphereGeometry(0.14, 12, 12),
+      glowMat(COL.cyan, .8)
+    );
+    k.position.set((i - NK/2 + 0.5) * 0.42, y, 0);
+    k.userData = { delta: Math.random() };
+    darKeys.push(k); darGroup.add(k);
+  }
+}
+
+// ── STATE-COMPRESS GROUP: 3D bar chart, channels shrink ──────────
+const scGroup = new THREE.Group();
+scGroup.visible = false;
+scene.add(scGroup);
+const scBars = [];
+{
+  const N = 32;
+  const spacing = 0.42;
+  for (let i = 0; i < N; i++) {
+    const bar = new THREE.Mesh(
+      new THREE.BoxGeometry(0.28, 1, 0.28),
+      new THREE.MeshBasicMaterial({
+        color: i % 3 === 0 ? COL.orange : (i % 2 ? COL.cyan : COL.violet),
+        transparent: true, opacity: .85,
+      })
+    );
+    const h = 1 + Math.random() * 2.5;
+    bar.scale.y = h;
+    bar.position.set((i - N/2 + 0.5) * spacing, h / 2 - 2, 0);
+    bar.userData = { fullH: h, magnitude: Math.random() };
+    scBars.push(bar);
+    scGroup.add(bar);
+  }
+}
+
+// ── BENCH GROUP: floating gauge rings ────────────────────────────
+const benchGroup = new THREE.Group();
+benchGroup.visible = false;
+scene.add(benchGroup);
+{
+  for (let i = 0; i < 3; i++) {
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(2 + i * 1.4, 0.08, 16, 128),
+      glowMat([COL.cyan, COL.violet, COL.orange][i], .8)
+    );
+    ring.rotation.x = Math.PI / 3 + i * 0.15;
+    ring.rotation.y = i * 0.35;
+    benchGroup.add(ring);
+  }
+  // orbiting metric orbs
+  for (let i = 0; i < 24; i++) {
+    const orb = new THREE.Mesh(
+      new THREE.SphereGeometry(0.14, 10, 10),
+      glowMat([COL.cyan, COL.violet, COL.orange][i % 3], .95)
+    );
+    const R = 2 + (i % 3) * 1.4;
+    const a = (i / 24) * Math.PI * 2;
+    orb.position.set(Math.cos(a) * R, Math.sin(a) * R * 0.4, Math.sin(a * 1.3) * R * 0.3);
+    orb.userData = { R, a, tier: i % 3 };
+    benchGroup.add(orb);
+  }
+}
+
+// ── scene registry ───────────────────────────────────────────────
+const sceneMap = {
+  hero:          heroGroup,
+  selkv:         selkvGroup,
+  smsa:          smsaGroup,
+  'delta-ar':    darGroup,
+  statecompress: scGroup,
+  orbit:         heroGroup,
+  bench:         benchGroup,
+  cta:           heroGroup,
+};
+const sceneList = ['hero','selkv','smsa','delta-ar','statecompress','orbit','bench','cta'];
+
+// ── scroll → active scene ────────────────────────────────────────
+let currentScene = 'hero';
+let sceneT = 0;   // progress within current scene [0..1]
+let heroFade = 1;
+
+// dot rail
+const rail = document.getElementById('rail');
+sceneList.forEach((s, i) => {
+  const d = document.createElement('div');
+  d.className = 'dot' + (i === 0 ? ' active' : '');
+  d.dataset.scene = s;
+  rail.appendChild(d);
+});
+const railDots = [...rail.children];
+
+const sections = [...document.querySelectorAll('section')];
+function updateActiveSection() {
+  const y = window.scrollY + window.innerHeight * 0.5;
+  let active = sections[0];
+  for (const s of sections) {
+    if (s.offsetTop <= y) active = s;
+  }
+  const sc = active.dataset.scene || 'hero';
+  if (sc !== currentScene) {
+    currentScene = sc;
+    Object.entries(sceneMap).forEach(([k, g]) => { g.visible = false; });
+    (sceneMap[sc] || heroGroup).visible = true;
+    railDots.forEach(d => d.classList.toggle('active', d.dataset.scene === sc));
+  }
+  // scene progress: how far through the active section are we
+  const sTop = active.offsetTop;
+  const sH   = active.offsetHeight;
+  sceneT = Math.max(0, Math.min(1, (window.scrollY + window.innerHeight * 0.5 - sTop) / sH));
+}
+window.addEventListener('scroll', updateActiveSection, { passive: true });
+updateActiveSection();
+
+// ── mouse parallax ────────────────────────────────────────────────
+let mx = 0, my = 0;
+window.addEventListener('mousemove', (e) => {
+  mx = (e.clientX / window.innerWidth  - 0.5) * 2;
+  my = (e.clientY / window.innerHeight - 0.5) * 2;
+});
+
+// ── resize ────────────────────────────────────────────────────────
+window.addEventListener('resize', () => {
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  composer.setSize(window.innerWidth, window.innerHeight);
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+});
+
+// ── animation loop ────────────────────────────────────────────────
+const clock = new THREE.Clock();
+function animate() {
+  requestAnimationFrame(animate);
+  const t = clock.getElapsedTime();
+  const dt = clock.getDelta();
+
+  // gentle camera parallax on all scenes
+  camera.position.x += (mx * 1.4 - camera.position.x) * 0.05;
+  camera.position.y += (-my * 0.8 - camera.position.y) * 0.05;
+  camera.lookAt(0, 0, 0);
+
+  // ── HERO: rotate core + orbit primitives ────────────
+  if (heroGroup.visible) {
+    core.rotation.y = t * 0.35;
+    core.rotation.x = Math.sin(t * 0.4) * 0.15;
+    primNodes.forEach((g, i) => {
+      const a = g.userData.baseA + t * 0.25;
+      const R = currentScene === 'orbit' ? 5.5 : 6.5;
+      g.position.set(Math.cos(a) * R, Math.sin(a * 1.3 + t * 0.5) * 1.5, Math.sin(a) * R);
+      g.rotation.x = t * 0.8 + i;
+      g.rotation.y = t * 0.6;
+    });
+    // scale-down in CTA / orbit
+    const target = currentScene === 'cta' ? 0.4 : (currentScene === 'orbit' ? 0.7 : 1.0);
+    heroGroup.scale.setScalar(heroGroup.scale.x + (target - heroGroup.scale.x) * 0.05);
+  }
+
+  // ── SELKV: fade & drop tokens per eviction sweep ────
+  if (selkvGroup.visible) {
+    selkvGroup.rotation.y += dt * 0.15;
+    selkvGroup.rotation.x = Math.sin(t * 0.4) * 0.08;
+    // eviction threshold sweeps from 0 → 0.9 across the section
+    const evictT = 0.05 + sceneT * 0.90;
+    tokens.forEach((tk) => {
+      const evicted = tk.userData.delta < evictT;
+      const targetY = evicted ? tk.userData.homeY - 6 - (1 - tk.userData.delta) * 4 : tk.userData.homeY;
+      tk.position.y += (targetY - tk.position.y) * 0.08;
+      const targetOp = evicted ? Math.max(0, 0.4 - (evictT - tk.userData.delta) * 2) : 0.4 + tk.userData.delta * 0.55;
+      tk.material.opacity += (targetOp - tk.material.opacity) * 0.1;
+      if (evicted) tk.material.color.lerp(COL.dim, 0.02);
+      else tk.material.color.lerp(tk.userData.delta > .5 ? COL.cyan : COL.violet, 0.06);
+    });
+  }
+
+  // ── SMSA: sliding highlight window ──────────────────
+  if (smsaGroup.visible) {
+    smsaGroup.rotation.y = Math.sin(t * 0.3) * 0.2;
+    smsaGroup.rotation.x = -0.15 + Math.sin(t * 0.25) * 0.05;
+    const N = smsaTokens.length;
+    const w = 8;                                // window width
+    const center = ((Math.sin(t * 0.6) + 1) / 2) * (N - w) + w / 2;
+    smsaTokens.forEach((c, i) => {
+      const inWin = Math.abs(i - center) < w / 2;
+      const targetCol = inWin ? COL.cyan : COL.dim;
+      c.material.color.lerp(targetCol, 0.15);
+      c.material.opacity += ((inWin ? 0.95 : 0.35) - c.material.opacity) * 0.15;
+      const targetY = inWin ? Math.sin((i - center) / w * Math.PI) * 0.4 : 0;
+      c.position.y += (targetY - c.position.y) * 0.15;
+    });
+  }
+
+  // ── DELTA-AR: draw routing lines from each query to top-K ─
+  if (darGroup.visible) {
+    darGroup.rotation.y = Math.sin(t * 0.25) * 0.15;
+    // clear old lines
+    for (const l of darLines) darGroup.remove(l);
+    darLines.length = 0;
+    const K = 3;
+    const rankedKeys = [...darKeys].sort((a, b) => b.userData.delta - a.userData.delta);
+    const topK = rankedKeys.slice(0, K);
+    darQueries.forEach((q, qi) => {
+      // pick K keys near this query by index for varied lines
+      const offset = Math.floor(t * 4 + qi) % darKeys.length;
+      const chosen = [];
+      for (let j = 0; j < K; j++) chosen.push(topK[(offset + j * 3) % topK.length]);
+      chosen.forEach((k) => {
+        const geom = new THREE.BufferGeometry().setFromPoints([q.position, k.position]);
+        const mat = new THREE.LineBasicMaterial({
+          color: k.userData.delta > 0.6 ? COL.orange : COL.cyan,
+          transparent: true, opacity: 0.35 + k.userData.delta * 0.5,
+        });
+        const line = new THREE.Line(geom, mat);
+        darGroup.add(line);
+        darLines.push(line);
+      });
+    });
+    darQueries.forEach((q, i) => {
+      q.material.opacity = 0.7 + Math.sin(t * 3 + i) * 0.25;
+    });
+    darKeys.forEach((k, i) => {
+      k.material.opacity = 0.5 + k.userData.delta * 0.5;
+    });
+  }
+
+  // ── STATECOMPRESS: bars shrink by magnitude tier ───────
+  if (scGroup.visible) {
+    scGroup.rotation.y += dt * 0.2;
+    scGroup.rotation.x = -0.18;
+    const compressT = 0.05 + sceneT * 0.95;   // 0 → 1
+    scBars.forEach((b) => {
+      const kept = b.userData.magnitude > compressT * 0.75;
+      const targetH = kept ? b.userData.fullH : b.userData.fullH * 0.06;
+      b.scale.y += (targetH - b.scale.y) * 0.08;
+      b.position.y = b.scale.y / 2 - 2;
+      b.material.opacity += ((kept ? 0.9 : 0.15) - b.material.opacity) * 0.1;
+    });
+  }
+
+  // ── BENCH: gauge rings rotate, orbs orbit ──────────────
+  if (benchGroup.visible) {
+    benchGroup.rotation.y = t * 0.15;
+    benchGroup.children.forEach((c, i) => {
+      if (c.geometry?.type === 'TorusGeometry') {
+        c.rotation.z = t * (0.4 + i * 0.1);
+      } else if (c.userData?.R) {
+        const a = c.userData.a + t * (0.4 - c.userData.tier * 0.1);
+        const R = c.userData.R;
+        c.position.set(Math.cos(a) * R, Math.sin(a) * R * 0.4, Math.sin(a * 1.3) * R * 0.3);
+      }
+    });
+  }
+
+  composer.render();
+}
+animate();
+</script>
+
+</body>
+</html>

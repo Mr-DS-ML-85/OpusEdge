@@ -1,0 +1,28 @@
+[project]
+name = "opusedge-bench"
+version = "0.1.0"
+description = "Real-model benchmark harness for the OpusEdge primitives"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "accelerate>=1.14.0",
+    "bitsandbytes>=0.49.2",
+    "einops>=0.8.2",
+    "safetensors>=0.8.0",
+    "sentencepiece>=0.2.2",
+    "torch>=2.13.0",
+    "transformers>=5.14.1",
+    # local C++ engine — always resolved from ../engine, no PyPI needed
+    "opusedge_cpp",
+    "matplotlib>=3.11.1",
+]
+
+[tool.uv.sources]
+opusedge_cpp = { path = "../engine", editable = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["opusedge_bench"]

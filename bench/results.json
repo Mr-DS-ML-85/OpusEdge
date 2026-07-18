@@ -1,0 +1,303 @@
+{
+  "config": {
+    "dense_model": "HuggingFaceTB/SmolLM2-135M",
+    "hybrid_model": "state-spaces/mamba-130m-hf",
+    "moe_model": "Qwen/Qwen1.5-MoE-A2.7B",
+    "seq_len": 128,
+    "prompt": "long_context",
+    "skip": [
+      "moe",
+      "hybrid"
+    ],
+    "out": "results.json"
+  },
+  "runs": [
+    {
+      "model": "HuggingFaceTB/SmolLM2-135M",
+      "family": "dense",
+      "signal": "Proxy-\u0394",
+      "seq_len": 128,
+      "baseline_ppl": 97.6875,
+      "selkv_ppl": {
+        "0.250": 400.25,
+        "0.500": 431.25,
+        "0.750": 1534.0,
+        "0.875": 4840.0
+      },
+      "random_ppl": {
+        "0.250": 652.5,
+        "0.500": 923.5,
+        "0.750": 2890.0,
+        "0.875": 39584.0
+      },
+      "smsa_ms": {
+        "64": 0.05798210004286375,
+        "128": 0.056793099975038785,
+        "256": 0.05740209999203216
+      },
+      "full_attn_ms": 0.06647704994975356,
+      "delta_topk_flop_reduction": {
+        "32": 0.75,
+        "64": 0.5,
+        "128": 0.0
+      },
+      "kv_cache_mb_baseline": 2.8125,
+      "kv_cache_mb_after_selkv": {
+        "0.250": 2.109375,
+        "0.500": 1.40625,
+        "0.750": 0.703125,
+        "0.875": 0.3515625
+      },
+      "kv_cache_pct_reduction_selkv": {
+        "0.250": 25.0,
+        "0.500": 50.0,
+        "0.750": 75.0,
+        "0.875": 87.5
+      },
+      "kv_cache_mb_after_smsa": {
+        "64": 1.40625,
+        "128": 2.8125,
+        "256": 2.8125
+      },
+      "kv_cache_pct_reduction_smsa": {
+        "64": 50.0,
+        "128": 0.0,
+        "256": 0.0
+      },
+      "all_primitives": [
+        {
+          "name": "proxy_delta",
+          "category": "util",
+          "summary": "128 scores, \u03bc=0.141",
+          "flop_reduction_pct": null,
+          "mem_reduction_pct": null
+        },
+        {
+          "name": "spearman",
+          "category": "util",
+          "summary": "self-reverse \u03c1 = -0.001",
+          "flop_reduction_pct": null,
+          "mem_reduction_pct": null
+        },
+        {
+          "name": "normalize",
+          "category": "util",
+          "summary": "range [0.009, 1.000]",
+          "flop_reduction_pct": null,
+          "mem_reduction_pct": null
+        },
+        {
+          "name": "sact_transmute",
+          "category": "stabilizer",
+          "summary": "residual=0.15, \u03bc=12.465",
+          "flop_reduction_pct": null,
+          "mem_reduction_pct": null
+        },
+        {
+          "name": "ebar_entropy",
+          "category": "util",
+          "summary": "mean H = 0.000",
+          "flop_reduction_pct": null,
+          "mem_reduction_pct": null
+        },
+        {
+          "name": "ndpa_rectify",
+          "category": "stabilizer",
+          "summary": "\u03b3=1.000, active=True",
+          "flop_reduction_pct": null,
+          "mem_reduction_pct": null
+        },
+        {
+          "name": "selkv_evict[r=0.5]",
+          "category": "core",
+          "summary": "kept 64/128",
+          "flop_reduction_pct": null,
+          "mem_reduction_pct": 50.0
+        },
+        {
+          "name": "selkv_evict[r=0.875]",
+          "category": "core",
+          "summary": "kept 16/128",
+          "flop_reduction_pct": null,
+          "mem_reduction_pct": 87.5
+        },
+        {
+          "name": "selkv_quality_ratio[r=0.5]",
+          "category": "core",
+          "summary": "vs-random ratio = 2.948",
+          "flop_reduction_pct": null,
+          "mem_reduction_pct": null
+        },
+        {
+          "name": "smsa_analyze[w=64]",
+          "category": "core",
+          "summary": "speedup=2.00\u00d7 eff_w=64",
+          "flop_reduction_pct": 50.0,
+          "mem_reduction_pct": 50.0
+        },
+        {
+          "name": "smsa_analyze[w=128]",
+          "category": "core",
+          "summary": "speedup=1.00\u00d7 eff_w=128",
+          "flop_reduction_pct": 0.0,
+          "mem_reduction_pct": 0.0
+        },
+        {
+          "name": "smsa_analyze[w=256]",
+          "category": "core",
+          "summary": "speedup=1.00\u00d7 eff_w=128",
+          "flop_reduction_pct": 0.0,
+          "mem_reduction_pct": 0.0
+        },
+        {
+          "name": "delta_ar_indices[k=32]",
+          "category": "core",
+          "summary": "128\u00d732 routing table",
+          "flop_reduction_pct": null,
+          "mem_reduction_pct": null
+        },
+        {
+          "name": "delta_ar_flops[k=32]",
+          "category": "core",
+          "summary": "analytical reduction",
+          "flop_reduction_pct": 75.0,
+          "mem_reduction_pct": null
+        },
+        {
+          "name": "ebdar[\u03b2=0.85]",
+          "category": "stabilizer",
+          "summary": "reservoir \u03bc = 0.000",
+          "flop_reduction_pct": null,
+          "mem_reduction_pct": null
+        },
+        {
+          "name": "head_active[\u03b4=0.05]",
+          "category": "core",
+          "summary": "16/9 heads",
+          "flop_reduction_pct": -77.77777777777777,
+          "mem_reduction_pct": null
+        },
+        {
+          "name": "head_flop_reduction",
+          "category": "core",
+          "summary": "per-token mean",
+          "flop_reduction_pct": 0.0,
+          "mem_reduction_pct": null
+        },
+        {
+          "name": "state_keep_ratio[\u03b4=0.05]",
+          "category": "core",
+          "summary": "keep 25.0% of channels",
+          "flop_reduction_pct": null,
+          "mem_reduction_pct": 75.0
+        },
+        {
+          "name": "composite_analyze",
+          "category": "core",
+          "summary": "full pipeline",
+          "flop_reduction_pct": 66.66666666666667,
+          "mem_reduction_pct": 25.0
+        },
+        {
+          "name": "gakv_analyze",
+          "category": "core",
+          "summary": "kept 3/128",
+          "flop_reduction_pct": null,
+          "mem_reduction_pct": 97.65625
+        },
+        {
+          "name": "rgakv_analyze[cal_mod=0.15]",
+          "category": "core",
+          "summary": "kept 3/128",
+          "flop_reduction_pct": null,
+          "mem_reduction_pct": 97.65625
+        },
+        {
+          "name": "mpsr_project",
+          "category": "stabilizer",
+          "summary": "compression=0.250, energy=1.000",
+          "flop_reduction_pct": null,
+          "mem_reduction_pct": 75.0
+        },
+        {
+          "name": "mpsr_sact[res=0.5]",
+          "category": "stabilizer",
+          "summary": "compression=0.250, energy=1.000",
+          "flop_reduction_pct": null,
+          "mem_reduction_pct": 75.0
+        },
+        {
+          "name": "ebar_analyze",
+          "category": "stabilizer",
+          "summary": "buffer \u03bc = 0.096",
+          "flop_reduction_pct": 80.44270833292434,
+          "mem_reduction_pct": null
+        },
+        {
+          "name": "ssr_analyze[H=0.5]",
+          "category": "stabilizer",
+          "summary": "7/32 preserved",
+          "flop_reduction_pct": 87534796800.0,
+          "mem_reduction_pct": null
+        },
+        {
+          "name": "ssr_casp[\u03ba=1.0]",
+          "category": "stabilizer",
+          "summary": "8/32 preserved",
+          "flop_reduction_pct": 87534796800.0,
+          "mem_reduction_pct": null
+        },
+        {
+          "name": "ipss_analyze",
+          "category": "stabilizer",
+          "summary": "128/128 active heads",
+          "flop_reduction_pct": 0.0,
+          "mem_reduction_pct": null
+        },
+        {
+          "name": "cal_classify",
+          "category": "controller",
+          "summary": "general \u2192 Balanced (rigidity 0.50)",
+          "flop_reduction_pct": null,
+          "mem_reduction_pct": null
+        },
+        {
+          "name": "cal_rigidity",
+          "category": "controller",
+          "summary": "general \u2192 0.50",
+          "flop_reduction_pct": null,
+          "mem_reduction_pct": null
+        },
+        {
+          "name": "rcal_classify",
+          "category": "controller",
+          "summary": "tier=General, threshold=0.750",
+          "flop_reduction_pct": null,
+          "mem_reduction_pct": null
+        },
+        {
+          "name": "rcal_modulate",
+          "category": "controller",
+          "summary": "modulated \u03c4 = 0.750",
+          "flop_reduction_pct": null,
+          "mem_reduction_pct": null
+        },
+        {
+          "name": "rcal_eviction_cap",
+          "category": "controller",
+          "summary": "cap = 0.350",
+          "flop_reduction_pct": null,
+          "mem_reduction_pct": null
+        },
+        {
+          "name": "pareto_sweep",
+          "category": "core",
+          "summary": "96 config points explored",
+          "flop_reduction_pct": null,
+          "mem_reduction_pct": null
+        }
+      ],
+      "notes": "device=cuda, 4bit=True, n_layers=30, n_kv_heads=3"
+    }
+  ]
+}

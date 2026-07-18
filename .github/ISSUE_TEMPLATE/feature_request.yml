@@ -1,0 +1,32 @@
+name: 💡 Feature request
+description: A new primitive, a new model backend, an API you wish existed.
+labels: [enhancement, needs-triage]
+
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What would you like to see?
+      description: If it's a new primitive, please point at the paper section it comes from.
+    validations:
+      required: true
+
+  - type: textarea
+    id: why
+    attributes:
+      label: Why does it matter?
+      description: What problem does it solve that the current code can't already?
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: If this is a workaround or a specific model backend, what have you already tried?
+
+  - type: checkboxes
+    id: contribute
+    attributes:
+      label: Willing to help?
+      options:
+        - label: I'd send a PR if given some pointers
+        - label: I'd help review a PR

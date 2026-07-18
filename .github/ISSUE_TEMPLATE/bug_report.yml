@@ -1,0 +1,63 @@
+name: 🐛 Bug report
+description: A numerical error, a build failure, a wrong result.
+labels: [bug, needs-triage]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. Please fill out as much as you can — the
+        more concrete the reproduction, the faster the fix.
+
+  - type: input
+    id: version
+    attributes:
+      label: Version / commit
+      description: Output of `git rev-parse --short HEAD` or the tag you're on.
+      placeholder: "e.g. v1.0.0 or a1b2c3d"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: layer
+    attributes:
+      label: Where does the bug live?
+      options:
+        - "C++ engine (engine/)"
+        - "Python bench harness (bench/)"
+        - "Python SDK (opusedge_cpp.sdk)"
+        - "C++ SDK (opusedge/sdk.h)"
+        - "3D landing page (web/)"
+        - "Docs (docs/)"
+        - "Build system (CMake / uv)"
+        - "Other"
+    validations:
+      required: true
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: Include the exact command you ran and the full error / wrong output.
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+      description: Reference a specific paper equation / table if the disagreement is numerical.
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction
+      description: A minimal script or command sequence.
+      render: shell
+
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      placeholder: "OS · compiler · CUDA · CPU · GPU · Python version"

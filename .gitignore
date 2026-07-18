@@ -1,0 +1,57 @@
+# build artifacts
+build/
+dist/
+*.o
+*.so
+*.dylib
+*.dll
+*.a
+*.pyd
+*.egg-info/
+__pycache__/
+*.pyc
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+_deps/
+
+# editor / os
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# python envs
+.venv/
+venv/
+.python-version
+
+# docs generated
+docs/_site/
+docs/.cache/
+
+# secrets
+*.env
+.env.local
+
+# scratch
+tmp/
+scratch/
+
+# bench outputs — commit the interesting ones by hand with `git add -f`
+bench/results_*.json
+bench/scaling.csv
+bench/scaling_long.csv
+bench/pipeline.csv
+bench/llm_scaling*.json
+
+# keep plots — they're what the README embeds
+!plots/
+
+# claude-code side-channel
+.claude/
+.claude-flow/
+
+# HF cache pointer
+!bench/results.json

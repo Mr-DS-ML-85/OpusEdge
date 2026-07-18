@@ -1,0 +1,76 @@
+{
+  "config": {
+    "model": "dense",
+    "seq": "1024,2048,4096,8192",
+    "selkv_ratio": 0.875,
+    "effective_context": 32768,
+    "chunk": 4096,
+    "budget": 8192,
+    "dense_model": "Qwen/Qwen2.5-0.5B",
+    "hybrid_model": "tiiuae/Falcon-H1-0.5B-Instruct",
+    "moe_model": "ibm-granite/granite-3.1-1b-a400m-instruct",
+    "out": "/home/irfan/Desktop/Opusedge/bench/llm_chunked_qwen_32k.json"
+  },
+  "runs": [
+    {
+      "family": "dense",
+      "model": "Qwen/Qwen2.5-0.5B",
+      "effective_context": 32768,
+      "chunk": 4096,
+      "budget": 8192,
+      "steps": 8,
+      "total_ms": 4904.774157999782,
+      "peak_vram_per_step": [
+        1687.66015625,
+        1747.53515625,
+        1803.66015625,
+        1810.66015625,
+        1806.66015625,
+        1810.06640625,
+        1813.66015625,
+        1805.66015625
+      ],
+      "kv_size_per_step": [
+        4096,
+        8192,
+        8192,
+        8192,
+        8192,
+        8192,
+        8192,
+        8192
+      ],
+      "kv_baseline_mib_analytical": 384.0,
+      "kv_after_selkv_mib_analytical": 96.0,
+      "analytical_reduction_pct": 75.0,
+      "vram_before_trim_mib_per_step": [
+        608.66015625,
+        615.66015625,
+        611.66015625,
+        615.06640625,
+        618.66015625,
+        610.66015625
+      ],
+      "vram_after_trim_mib_per_step": [
+        542.37890625,
+        543.37890625,
+        542.37890625,
+        541.97265625,
+        541.97265625,
+        545.97265625
+      ],
+      "measured_reduction_pct_per_step": [
+        10.889697529794562,
+        11.740446294310603,
+        11.326755436344483,
+        11.88387940834641,
+        12.395739280324792,
+        10.593044156874287
+      ],
+      "measured_reduction_pct_mean": 11.471593684332523,
+      "measured_vram_before_mean_mib": 613.39453125,
+      "measured_vram_after_mean_mib": 543.0091145833334,
+      "peak_vram_max_mib": 1813.66015625
+    }
+  ]
+}

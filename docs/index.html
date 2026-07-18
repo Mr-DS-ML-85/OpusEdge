@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>OpusEdge · Documentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:        #05070d;
+    --bg-2:      #0a0e1a;
+    --fg:        #e6ecff;
+    --muted:     #8892b0;
+    --line:      rgba(255,255,255,.08);
+    --accent:    #7dd3fc;
+    --accent-2:  #a78bfa;
+    --accent-3:  #fb923c;
+    --grad:      linear-gradient(120deg, #7dd3fc 0%, #a78bfa 55%, #fb923c 100%);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Inter', system-ui, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  body {
+    background:
+      radial-gradient(900px 500px at 90% -10%, rgba(167,139,250,.12), transparent 60%),
+      radial-gradient(700px 400px at -10% 100%, rgba(125,211,252,.08), transparent 60%),
+      var(--bg);
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { color: var(--accent-2); }
+  code { font-family: 'JetBrains Mono', monospace; }
+
+  nav.top {
+    position: sticky; top: 0; z-index: 10;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 28px;
+    backdrop-filter: blur(14px);
+    background: rgba(5,7,13,.75);
+    border-bottom: 1px solid var(--line);
+  }
+  nav.top .brand {
+    display: flex; align-items: center; gap: 10px;
+    font-weight: 700;
+  }
+  nav.top .brand .glyph {
+    width: 26px; height: 26px;
+    display: grid; place-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent-3);
+    background: radial-gradient(circle at 30% 30%, rgba(251,146,60,.35), rgba(251,146,60,0) 70%);
+    border: 1px solid rgba(251,146,60,.35);
+    border-radius: 8px;
+  }
+  nav.top .brand em {
+    font-style: normal;
+    background: var(--grad);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  nav.top .links a {
+    margin-left: 22px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  nav.top .links a:hover { color: var(--fg); }
+
+  main {
+    max-width: 1080px; margin: 0 auto;
+    padding: 60px 28px 120px;
+  }
+  header.doc {
+    padding: 40px 0 60px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 60px;
+  }
+  header.doc .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 18px;
+  }
+  header.doc h1 {
+    font-size: clamp(38px, 5.5vw, 68px);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin: 0 0 18px;
+    line-height: 1.05;
+  }
+  header.doc h1 .grad {
+    background: var(--grad);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  header.doc p {
+    color: var(--muted);
+    font-size: 18px;
+    max-width: 720px;
+    margin: 0;
+  }
+
+  h2 {
+    font-size: 26px; font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 60px 0 22px;
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+  }
+  .card {
+    padding: 24px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: rgba(10, 14, 26, 0.55);
+    backdrop-filter: blur(10px);
+    transition: all .2s;
+    display: block;
+    color: inherit;
+  }
+  .card:hover {
+    border-color: rgba(125,211,252,.35);
+    transform: translateY(-2px);
+    background: rgba(13, 18, 32, 0.75);
+  }
+  .card .tag {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: .1em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .card h3 {
+    margin: 0 0 8px;
+    font-size: 20px; font-weight: 600;
+    color: var(--fg);
+  }
+  .card p {
+    margin: 0;
+    font-size: 14px; color: var(--muted);
+    line-height: 1.55;
+  }
+  .card .go {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-top: 14px;
+    font-size: 13px; font-weight: 500;
+    color: var(--accent);
+  }
+
+  .refbox {
+    padding: 24px 28px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: rgba(10, 14, 26, 0.55);
+    backdrop-filter: blur(10px);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 20px;
+  }
+  .refbox .cell .n {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 24px; font-weight: 700;
+    background: var(--grad);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .refbox .cell .k {
+    margin-top: 6px; font-size: 12px;
+    color: var(--muted); text-transform: uppercase; letter-spacing: .06em;
+  }
+
+  pre {
+    background: #0d1220;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px 20px;
+    overflow-x: auto;
+    font-size: 13.5px;
+    line-height: 1.6;
+  }
+  pre code { color: #cdd6f4; }
+</style>
+</head>
+<body>
+
+<nav class="top">
+  <div class="brand">
+    <div class="glyph">Δ</div>
+    <div>Opus<em>Edge</em> · docs</div>
+  </div>
+  <div class="links">
+    <a href="../web/index.html">Landing</a>
+    <a href="../paper/OpusEdge.txt">Paper</a>
+    <a href="https://github.com/Mr-DS-ML-85/opusedge">GitHub</a>
+  </div>
+</nav>
+
+<main>
+  <header class="doc">
+    <div class="eyebrow">Reference · v1.0</div>
+    <h1>
+      Everything you need to<br />
+      <span class="grad">wire OpusEdge into your model.</span>
+    </h1>
+    <p>
+      A five-minute build, ten composable primitives, and four stabilizers that keep quality
+      intact under aggressive compression. This is the reference implementation of the paper.
+    </p>
+  </header>
+
+  <div class="refbox">
+    <div class="cell"><div class="n">100.5×</div><div class="k">quality @ 87.5% KV</div></div>
+    <div class="cell"><div class="n">4.98×</div><div class="k">attn speedup @ 2k tok</div></div>
+    <div class="cell"><div class="n">98.9%</div><div class="k">integrated VRAM red.</div></div>
+    <div class="cell"><div class="n">30</div><div class="k">primitives (C++/Py)</div></div>
+    <div class="cell"><div class="n">0</div><div class="k">retraining needed</div></div>
+  </div>
+
+  <h2>Start here</h2>
+  <div class="cards">
+    <a class="card" href="getting-started.md">
+      <div class="tag">01 · install</div>
+      <h3>Getting started</h3>
+      <p>Prereqs, CMake build, first primitive call. Five minutes end-to-end.</p>
+      <div class="go">Open →</div>
+    </a>
+    <a class="card" href="primitives.md">
+      <div class="tag">02 · reference</div>
+      <h3>Primitives</h3>
+      <p>One page per primitive with formulas, defaults, and paper cross-refs.</p>
+      <div class="go">Open →</div>
+    </a>
+    <a class="card" href="architecture.md">
+      <div class="tag">03 · design</div>
+      <h3>Architecture</h3>
+      <p>Telemetry / decision / execution layers and how they fit together.</p>
+      <div class="go">Open →</div>
+    </a>
+    <a class="card" href="benchmarks.md">
+      <div class="tag">04 · results</div>
+      <h3>Benchmarks</h3>
+      <p>Every table from the paper — SelKV, SMSA, DenseEvic, ΔRank, integrated ablation.</p>
+      <div class="go">Open →</div>
+    </a>
+  </div>
+
+  <h2>Quick install</h2>
+<pre><code>git clone https://github.com/Mr-DS-ML-85/opusedge &amp;&amp; cd opusedge
+sudo apt-get install libeigen3-dev
+cmake -S engine -B engine/build \
+  -DOPUSEDGE_BUILD_EXAMPLES=ON \
+  -DOPUSEDGE_BUILD_BENCHMARKS=ON
+cmake --build engine/build -j
+./engine/build/examples/all_primitives_demo</code></pre>
+
+  <h2>Also see</h2>
+  <div class="cards">
+    <a class="card" href="../web/index.html">
+      <div class="tag">interactive</div>
+      <h3>3D landing page</h3>
+      <p>Multi-scene Three.js visualiser — SelKV eviction, SMSA window, Delta-AR routing,
+         StateCompress channel shrink.</p>
+      <div class="go">Launch →</div>
+    </a>
+    <a class="card" href="../paper/OpusEdge.txt">
+      <div class="tag">reading</div>
+      <h3>The paper</h3>
+      <p>Full derivation of the Δ / Proxy-Δ / IR unification and all 24-prompt benchmarks.</p>
+      <div class="go">Open →</div>
+    </a>
+    <a class="card" href="../engine">
+      <div class="tag">source</div>
+      <h3>Engine source</h3>
+      <p>Header-only C++20. 30+ primitives. GTest suite. Zero runtime dependencies beyond Eigen.</p>
+      <div class="go">Browse →</div>
+    </a>
+  </div>
+</main>
+
+</body>
+</html>

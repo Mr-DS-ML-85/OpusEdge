@@ -1,0 +1,10 @@
+if(NOT EXISTS "@CMAKE_BINARY_DIR@/install_manifest.txt")
+    return()
+endif()
+
+file(READ "@CMAKE_BINARY_DIR@/install_manifest.txt" files)
+string(REGEX REPLACE "\n" ";" files "${files}")
+foreach(file ${files})
+    message(STATUS "Removing: ${file}")
+    file(REMOVE ${file})
+endforeach()

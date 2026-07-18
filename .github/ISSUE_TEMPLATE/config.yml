@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📖 Read the paper first
+    url: https://github.com/Mr-DS-ML-85/opusedge/blob/main/paper/OpusEdge.txt
+    about: Most "is this really O(N²)?" style questions are answered here.
+  - name: 📚 Docs
+    url: https://github.com/Mr-DS-ML-85/opusedge/tree/main/docs
+    about: Getting-started, primitives reference, architecture, benchmarks.
+  - name: 💬 Discussions
+    url: https://github.com/Mr-DS-ML-85/opusedge/discussions
+    about: Open-ended questions belong in Discussions, not Issues.
