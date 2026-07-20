@@ -340,12 +340,19 @@ int main(int argc, char** argv) {
         }, seqs, iters, warmup);
 
     // ── StateCompress::compress_channels ── O(D log D)
+    //
+    // NB: `auto state = random_mat(...).row(0).transpose();` would deduce an
+    // Eigen expression template that holds a pointer INTO the temporary
+    // returned by random_mat() — undefined behaviour, sometimes a segfault
+    // in sc.compress_channels the moment we touch it. Explicitly type the
+    // variable as VectorXf so Eigen evaluates and copies the tail slice into
+    // its own storage before the temporary dies at the semicolon.
     all += bench_primitive("StateCompress::compress[D=hidden]", "O(D log D)",
         [&](int S) {
             (void)S;
-            auto state = random_mat(1, hidden, 4).row(0).transpose();
+            VectorXf state = random_mat(1, hidden, 4).row(0).transpose();
             StateCompress sc;
-            auto out = sc.compress_channels(state, 0.05);
+            VectorXf out = sc.compress_channels(state, 0.05);
             (void)out;
         }, seqs, iters, warmup);
 

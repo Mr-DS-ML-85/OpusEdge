@@ -55,3 +55,4 @@ bench/llm_scaling*.json
 
 # HF cache pointer
 !bench/results.json
+engine/build/
