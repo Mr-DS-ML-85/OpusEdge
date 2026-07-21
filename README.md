@@ -546,3 +546,7 @@ Contact: [`irfan@furylogic.com`](mailto:irfan@furylogic.com).
 that profile. Cross-family use — running SelKV / SMSA / Delta-AR inside a hosted API,
 paid product, or paid consulting deliverable — falls under commercial use and needs a
 separate agreement.
+
+## Star the repo                                                                                                                                                                                                                   
+                                                                                                                                                                                                                                      
+If OpusEdge helps your work, please ⭐ star this repo. It helps others discover it.
