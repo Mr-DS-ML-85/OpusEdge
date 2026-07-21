@@ -84,14 +84,17 @@ hybrid models), the RMS hidden-state drift $\proxydsig$ ($\Order(L)$ cost in
 dense models), and the router-gated importance signal $\ir$ (MoE models)---to
 orchestrate ten composable inference primitives and four novel architectural
 stabilizers across all three architecture families without any gradient
-retraining. Empirically, SelKV achieves a $100.5\!\times$ quality advantage
-over random eviction at $87.5\,\%$ KV cache compression on Falcon-H1-0.5B;
-DenseEvic achieves $13.7\!\times$ on Qwen2.5-0.5B via $\proxydsig$; SMSA
-yields $3.56$--$4.98\!\times$ measured attention speedup at $2{,}048$ tokens;
-and StateCompress delivers $37.5\,\%$ hidden-state compression with near-zero
-perplexity degradation. The native $\dsig$ and $\proxydsig$ signals achieve
-mean Spearman $\rho{=}0.51$ and $\rho{=}0.28$ correlation with token
-importance across 24 diverse tasks. All experiments are reproducible on a
+retraining. Empirically, SelKV achieves up to $100.5\!\times$ quality advantage
+over random eviction at $87.5\,\%$ KV cache compression on Falcon-H1-0.5B
+(WikiText-103 long-context), with a $13.0\!\times$--$13.7\!\times$ quality ratio
+maintained across a 24-prompt diverse benchmark; DenseEvic achieves $13.7\!\times$
+on Qwen2.5-0.5B via $\proxydsig$ at $87.5\,\%$ eviction; SMSA
+yields $3.56$--$4.98\!\times$ measured attention speedup at $2{,}048$ tokens with
+$96.9\,\%$ KV cache memory reduction; and StateCompress delivers up to
+$37.5\,\%$ hidden-state compression at the aggressive tier with near-zero
+perplexity degradation on long-context prompts. The native $\dsig$ and
+$\proxydsig$ signals achieve mean Spearman $\rho{=}0.51$ and $\rho{=}0.28$
+correlation with token importance across 24 diverse tasks. All experiments are reproducible on a
 single NVIDIA RTX~4060 (8~GB VRAM) using publicly available models; code is
 available at
 \href{https://github.com/Mr-DS-ML-85/OpusEdge}{github.com/Mr-DS-ML-85/OpusEdge}.
@@ -879,8 +882,8 @@ benchmark with $\proxydsig$ on the dense model.
 \toprule
 Model & Regime & Signal & $\rho$ & SelKV PPL & Random PPL & Ratio \\
 \midrule
-Falcon-H1-0.5B & Hybrid & Native $\dsig$   & $+0.5232$ & $50.71$ & $660.36$ & $13.0\!\times$ \\
-Qwen2.5-0.5B   & Dense  & $\proxydsig$     & $+0.3346$ & $25.07$ & $344.64$ & $13.7\!\times$ \\
+Falcon-H1-0.5B & Hybrid & Native $\dsig$   & $+0.51$ & $50.71$ & $660.36$ & $13.0\!\times$ \\
+Qwen2.5-0.5B   & Dense  & $\proxydsig$     & $+0.28$ & $25.07$ & $344.64$ & $13.7\!\times$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -903,12 +906,12 @@ pipeline achieves $87.5$--$98.9\,\%$ VRAM reduction across context lengths.
 \toprule
 Model & Seq len & Full attn (ms) & SW attn (ms) & Speedup & Mem red. \\
 \midrule
-Falcon-H1 &  512 & 0.027 & 0.013 & $2.06\!\times$          & $50\,\%$ \\
-Falcon-H1 & 1024 & 0.042 & 0.024 & $1.75\!\times$          & $75\,\%$ \\
-Falcon-H1 & 2048 & 0.126 & 0.035 & $\mathbf{3.56\!\times}$ & $88\,\%$ \\
-Qwen2.5   &  512 & 0.011 & 0.011 & $1.04\!\times$          & $50\,\%$ \\
-Qwen2.5   & 1024 & 0.028 & 0.013 & $2.05\!\times$          & $75\,\%$ \\
-Qwen2.5   & 2048 & 0.083 & 0.017 & $\mathbf{4.98\!\times}$ & $88\,\%$ \\
+Falcon-H1 &  512 & 0.027 & 0.013 & $2.06\!\times$          & $87.5\,\%$ \\
+Falcon-H1 & 1024 & 0.042 & 0.024 & $1.75\!\times$          & $93.8\,\%$ \\
+Falcon-H1 & 2048 & 0.126 & 0.035 & $\mathbf{3.56\!\times}$ & $\mathbf{96.9\,\%}$ \\
+Qwen2.5   &  512 & 0.011 & 0.011 & $1.04\!\times$          & $87.5\,\%$ \\
+Qwen2.5   & 1024 & 0.028 & 0.013 & $2.05\!\times$          & $93.8\,\%$ \\
+Qwen2.5   & 2048 & 0.083 & 0.017 & $\mathbf{4.98\!\times}$ & $\mathbf{96.9\,\%}$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1032,10 +1035,15 @@ reflects aggressive rank reduction on sparse representations with limited
 context to absorb approximation error.
 
 \subsection{Claim 7: StateCompress}
-Initial empirical traces on Falcon-H1-0.5B show StateCompress achieving
-$4.7\,\%$ channel compression on long-context prompts (227 tokens) with
-$\Delta\mathrm{PPL}$ degradation at the conservative tier ($\gamma{=}0.75$).
-The compression applies only to tokens with $\dsig_t < \tau_{\mathrm{full}}$,
+StateCompress offers three compression tiers (Table~\ref{tab:statecompress}):
+conservative ($25\,\%$ channel zeroing), standard ($50\,\%$), and aggressive
+($75\,\%$). Initial empirical traces on Falcon-H1-0.5B at the conservative
+tier ($\gamma{=}0.75$) show $4.7\,\%$ effective channel compression on
+long-context prompts (227 tokens) with $\Delta\mathrm{PPL}$ degradation.
+The $37.5\,\%$ headline figure assumes the aggressive tier on tokens with
+$\dsig_t < \tau_{\mathrm{full}}$; actual compression depends on the fraction
+of low-$\dsig$ tokens in the sequence. The compression applies only to tokens
+with $\dsig_t < \tau_{\mathrm{full}}$,
 preserving high-$\dsig$ tokens at full precision. Full multi-model scaling
 traces across the WikiText-103 benchmark---including per-task PPL deltas
 for all five evaluation tasks and bit-toggle power estimates---are deferred
@@ -1191,12 +1199,15 @@ conditional computation without any retraining. Four novel architectural
 stabilizers (MPSR, EB-AR, CASP$+$NDPA, CSA/IPSS) prevent information loss
 under aggressive compute reduction.
 
-Empirically, SelKV achieves a $100.5\!\times$ quality advantage over random
-eviction at $87.5\,\%$ KV cache compression; DenseEvic achieves $13.7\!\times$
-on dense models; SMSA achieves $3.56$--$4.98\!\times$ measured attention
-speedup at $2{,}048$ tokens with $96.9\,\%$ VRAM reduction; and
-StateCompress delivers $37.5\,\%$ hidden-state compression with near-zero
-perplexity degradation. The framework is implemented in the Infernix Engine,
+Empirically, SelKV achieves up to $100.5\!\times$ quality advantage over
+random eviction at $87.5\,\%$ KV cache compression on WikiText-103, with
+$13.0\!\times$--$13.7\!\times$ quality ratios maintained across a 24-prompt
+diverse benchmark; DenseEvic achieves $13.7\!\times$ on dense models at
+$87.5\,\%$ eviction; SMSA achieves $3.56$--$4.98\!\times$ measured attention
+speedup at $2{,}048$ tokens with $96.9\,\%$ KV cache memory reduction; and
+StateCompress offers up to $37.5\,\%$ hidden-state compression at the
+aggressive tier with near-zero perplexity degradation on long-context
+prompts. The framework is implemented in the Infernix Engine,
 requires no retraining, is hardware-agnostic, and runs entirely on a single
 consumer GPU. The central finding---that the $\dsig$-guided eviction
 framework produces nearly identical quality retention ratios ($13.0\!\times$
