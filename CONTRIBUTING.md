@@ -62,7 +62,7 @@ engine side.
 ## Signing off
 
 You must have the right to license your contribution under the PolyForm
-Noncommercial 1.0.0 License (for code) and CC BY-NC 4.0 (for any paper /
+Noncommercial 1.0.0 License (for code) and AGPL-3.0 (for any paper /
 docs contributions). By opening a PR you assert that you do.
 
 ## Questions

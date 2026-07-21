@@ -9,12 +9,13 @@ Reference C++20 engine · Python SDK · Three.js docs · reproduced on a single 
 
 <br />
 
+<a href="https://doi.org/10.5281/zenodo.21471506"><img alt="DOI" src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.21471506-blue?style=for-the-badge&logo=zenodo&logoColor=white" /></a>
 <a href="paper/OpusEdge.pdf"><img alt="Paper — PDF" src="https://img.shields.io/badge/paper-OpusEdge_(pdf)-FB923C?style=for-the-badge&logo=readthedocs&logoColor=white" /></a>
 <a href=".github/workflows/build.yml"><img alt="Build" src="https://img.shields.io/github/actions/workflow/status/Mr-DS-ML-85/OpusEdge/build.yml?branch=main&style=for-the-badge&label=build" /></a>
 <a href="engine/CMakeLists.txt"><img alt="C++20" src="https://img.shields.io/badge/C%2B%2B-20-00599C?style=for-the-badge&logo=cplusplus&logoColor=white" /></a>
 <a href="bench/pyproject.toml"><img alt="Python 3.12+" src="https://img.shields.io/badge/Python-3.12+-3776AB?style=for-the-badge&logo=python&logoColor=white" /></a>
 <a href="LICENSE"><img alt="License — PolyForm NC" src="https://img.shields.io/badge/code-PolyForm_NC_1.0-A78BFA?style=for-the-badge&logo=creativecommons&logoColor=white" /></a>
-<a href="paper/LICENSE"><img alt="Paper — CC BY-NC 4.0" src="https://img.shields.io/badge/paper-CC_BY--NC_4.0-A78BFA?style=for-the-badge&logo=creativecommons&logoColor=white" /></a>
+<a href="paper/LICENSE"><img alt="Paper — AGPL-3.0" src="https://img.shields.io/badge/paper-AGPL--3.0-A78BFA?style=for-the-badge&logo=gnu&logoColor=white" /></a>
 
 <br /><br />
 
@@ -499,13 +500,18 @@ Tested on GCC 15 / Clang 18, no GPU needed for the primitives themselves.
 
 ## Citation
 
+**DOI:** [10.5281/zenodo.21471506](https://doi.org/10.5281/zenodo.21471506) · [Zenodo record](https://zenodo.org/records/21471506)
+
 ```bibtex
-@misc{opusedge2026,
-  title  = {OpusEdge: Telemetry-Guided Dynamic Compute Allocation for
-            Dense, MoE, and Hybrid SSM-Attention Architectures},
-  author = {Irfan Mahir},
-  year   = {2026},
-  note   = {Furylogic Labs / Infernix Inference Engine Project}
+@misc{mahir2026opusedge,
+  title        = {OpusEdge: Telemetry-Guided Dynamic Compute Allocation for
+                  Dense, MoE, and Hybrid SSM-Attention Architectures},
+  author       = {Irfan Mahir},
+  year         = {2026},
+  publisher    = {Zenodo},
+  doi          = {10.5281/zenodo.21471506},
+  url          = {https://doi.org/10.5281/zenodo.21471506},
+  note         = {Furylogic Labs / Infernix Inference Engine Project}
 }
 ```
 
@@ -538,7 +544,7 @@ Contact: [`irfan@furylogic.com`](mailto:irfan@furylogic.com).
   study, hobby projects, or work at charitable / educational / government / public-research
   organisations. Any use with an anticipated commercial application requires a separate
   commercial licence.
-- **Paper** — [CC BY-NC 4.0](paper/LICENSE). Same spirit for the manuscript,
+- **Paper** — [AGPL-3.0](paper/LICENSE). Same spirit for the manuscript,
   figures, and derived preprints: share, adapt, cite — no commercial use.
 
 **Commercial licensing:** open a private discussion at

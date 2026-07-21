@@ -11,7 +11,7 @@ scheme is [SemVer](https://semver.org/).
 - **Licence — MIT → Noncommercial.** The code now ships under
   [PolyForm Noncommercial 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0/)
   (SPDX: `PolyForm-Noncommercial-1.0.0`). The paper text, figures, and PDF/DOCX
-  renderings are now under [CC BY-NC 4.0](paper/LICENSE). Both licences permit
+  renderings are now under [AGPL-3.0](paper/LICENSE). Both licences permit
   research, teaching, personal study, and use by charitable / educational /
   public-research / government organisations; commercial use requires a
   separate agreement. Contact via the maintainer's GitHub profile for a

@@ -26,7 +26,7 @@ Mixture-of-Experts, and Hybrid SSM–Attention Architectures.
 | [`Makefile`](Makefile) | `make` builds the PDF; `make arxiv` packages `opusedge-arxiv.tar.gz`; `make watch` uses `latexmk -pvc`. |
 | [`opusedge-arxiv.tar.gz`](opusedge-arxiv.tar.gz) | Ready-to-upload arXiv submission — `.tex` + `.bbl` only, no clutter. |
 | [`OpusEdge.docx`](OpusEdge.docx) | Original DOCX source (kept for editing convenience; the `.tex` is the source of truth). |
-| [`LICENSE`](LICENSE) | **CC BY-NC 4.0** — the paper and its figures / DOCX / PDF renderings are noncommercial. The code lives under a separate PolyForm-Noncommercial licence at the repo root. |
+| [`LICENSE`](LICENSE) | **AGPL-3.0** — the paper and its figures / DOCX / PDF renderings. The code lives under a separate PolyForm-Noncommercial licence at the repo root. |
 
 ## Build
 
@@ -113,9 +113,8 @@ GitHub's "Cite this repository" button reads it directly.
 
 ## Licence
 
-**Paper (this directory).** [Creative Commons Attribution-NonCommercial 4.0
-International (CC BY-NC 4.0)](LICENSE). Share and adapt with attribution;
-no commercial use.
+**Paper (this directory).** [GNU Affero General Public License v3.0 (AGPL-3.0)](LICENSE).
+Share, adapt, and distribute with attribution; derivatives must use the same license.
 
 **Code (repository root).** [PolyForm Noncommercial 1.0.0](../LICENSE).
 Research, teaching, personal, and charitable / educational / government use

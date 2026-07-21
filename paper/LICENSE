@@ -1,68 +1,66 @@
-Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
+GNU AFFERO GENERAL PUBLIC LICENSE
+Version 3, 19 November 2007
 
-<https://creativecommons.org/licenses/by-nc/4.0/legalcode>
+Copyright (C) 2026 Irfan Mahir.
 
 This license applies to the manuscript and its accompanying materials in this
-directory — the paper text, the DOCX / PDF renderings, figures, tables, and
-any derived preprints. **It does not apply to the code**, which is covered by
-the PolyForm Noncommercial License 1.0.0 at the repository root.
+directory — the paper text, the DOCX / PDF renderings, figures, tables, the
+LaTeX source, and any derived preprints. **It does not apply to the code**,
+which is covered by the PolyForm Noncommercial License 1.0.0 at the repository
+root.
 
-The two licenses are compatible in spirit — both prohibit commercial use — but
-serve different work types (creative works vs software).
+Everyone is permitted to copy and distribute verbatim copies of this license
+document, but changing it is not allowed.
 
+                            Preamble
 
-Attribution-NonCommercial 4.0 International — human-readable summary
-─────────────────────────────────────────────────────────────────────
+  The GNU Affero General Public License is a free, copyleft license for
+software and other kinds of works.
 
-You are free to:
+  The licenses for most software and other practical works are designed to
+take away your freedom to share and change the works.  By contrast, our
+General Public Licenses are intended to guarantee your freedom to share and
+change all versions of a program--to make sure it remains free software for
+all its users.
 
-  * Share — copy and redistribute the material in any medium or format
-  * Adapt — remix, transform, and build upon the material
+  When we speak of free software, we are referring to freedom, not price.
+Our General Public Licenses are designed to make sure that you have the
+freedom to distribute copies of free software (and charge for them if you
+wish), that you receive source code or can get it if you want it, that you
+can change the software or use pieces of it in new free programs, and that
+you know you can do these things.
 
-The licensor cannot revoke these freedoms as long as you follow the license
-terms.
+  To protect your rights, we need to prevent others from denying you these
+rights or asking you to surrender the rights.  Therefore, you have certain
+responsibilities if you distribute copies of the software, or if you modify
+it: responsibilities to respect the freedom of others.
 
-Under the following terms:
+  For example, if you distribute copies of such a program, whether gratis or
+for a fee, you must pass on to the recipients the same freedoms that you
+received.  You must make sure that they, too, receive or can get the source
+code.  And you must show them these terms so they know their rights.
 
-  * Attribution — You must give appropriate credit, provide a link to the
-    license, and indicate if changes were made. You may do so in any
-    reasonable manner, but not in any way that suggests the licensor
-    endorses you or your use.
+  Developers that use the GNU AGPL protect their users with the same
+mechanism: providing them with the source code of the modified version. The
+AGPL therefore provides stronger protection against proprietary
+enclosure than the regular GPL.
 
-  * NonCommercial — You may not use the material for commercial purposes.
-
-  * No additional restrictions — You may not apply legal terms or
-    technological measures that legally restrict others from doing anything
-    the license permits.
-
-Notices:
-
-  You do not have to comply with the license for elements of the material
-  in the public domain or where your use is permitted by an applicable
-  exception or limitation.
-
-  No warranties are given. The license may not give you all of the
-  permissions necessary for your intended use. For example, other rights
-  such as publicity, privacy, or moral rights may limit how you use the
-  material.
-
-
-Full legal code
-───────────────
-
-The full legal text is available at
-https://creativecommons.org/licenses/by-nc/4.0/legalcode
-
-Attribution should reference the work as:
-
-  Irfan Mahir. "OpusEdge: Telemetry-Guided Dynamic Compute Allocation for
-  Dense, MoE, and Hybrid SSM-Attention Architectures." Furylogic Labs /
-  Infernix Inference Engine Project, 2026.
-  https://github.com/Mr-DS-ML-85/OpusEdge
-
-Commercial licensing enquiries: open a private discussion at
-https://github.com/Mr-DS-ML-85.
+  For the complete legal text, see:
+  https://www.gnu.org/licenses/agpl-3.0.html
 
 ---
 
-Copyright (c) 2026 Irfan Mahir.
+Copyright (C) 2026 Irfan Mahir <irfan@furylogic.com>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
